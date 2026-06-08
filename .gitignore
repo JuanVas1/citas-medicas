@@ -1,0 +1,29 @@
+# Backend
+backend/node_modules/
+backend/.env
+backend/.DS_Store
+backend/*.log
+
+# Admin Panel
+admin/node_modules/
+admin/build/
+admin/.env.local
+admin/.DS_Store
+
+# Client Portal
+client/node_modules/
+client/build/
+client/.env.local
+client/.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+

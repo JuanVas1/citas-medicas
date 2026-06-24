@@ -47,6 +47,10 @@ exports.register = async (req, res) => {
       }
     });
   } catch (err) {
+    if (err?.code === 11000 && err?.keyPattern?.email) {
+      return res.status(400).json({ error: 'El email ya está registrado' });
+    }
+
     res.status(500).json({ error: err.message });
   }
 };

@@ -31,6 +31,18 @@ exports.createDoctor = async (req, res) => {
       return res.status(400).json({ error: 'Por favor completa todos los campos' });
     }
 
+    const existingDoctor = await Doctor.findOne({
+      $or: [{ email }, { licenseNumber }]
+    });
+
+    if (existingDoctor) {
+      return res.status(400).json({
+        error: existingDoctor.email === email
+          ? 'Ya existe un doctor con ese email'
+          : 'Ya existe un doctor con ese número de licencia'
+      });
+    }
+
     const doctor = new Doctor({
       name,
       speciality,
@@ -46,6 +58,16 @@ exports.createDoctor = async (req, res) => {
       doctor
     });
   } catch (err) {
+    if (err?.code === 11000) {
+      if (err?.keyPattern?.email) {
+        return res.status(400).json({ error: 'Ya existe un doctor con ese email' });
+      }
+
+      if (err?.keyPattern?.licenseNumber) {
+        return res.status(400).json({ error: 'Ya existe un doctor con ese número de licencia' });
+      }
+    }
+
     res.status(500).json({ error: err.message });
   }
 };

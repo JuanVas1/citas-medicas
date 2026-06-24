@@ -9,7 +9,7 @@ Sistema completo para gestión de citas médicas con interfaces separadas para c
 ```
 ┌─────────────────────────────────┐
 │   Admin Panel & Client Portal   │
-│        (React - 2 Apps)         │
+│        (React - 3 Apps)         │
 └───────────────┬─────────────────┘
                 │ HTTP/REST + JWT
                 ▼

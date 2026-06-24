@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema({
-  clientId: {
+  patientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
@@ -12,12 +12,16 @@ const appointmentSchema = new mongoose.Schema({
     required: true
   },
   date: {
-    type: Date,
+    type: String,
     required: [true, 'La fecha es requerida']
   },
-  time: {
+  startTime: {
     type: String,
     required: [true, 'La hora es requerida']
+  },
+  endTime: {
+    type: String,
+    required: [true, 'La hora fin es requerida']
   },
   reason: {
     type: String,
@@ -33,6 +37,20 @@ const appointmentSchema = new mongoose.Schema({
     type: String,
     maxlength: 1000
   },
+  history: [
+    {
+      status: String,
+      changedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      note: String,
+      changedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
   createdAt: {
     type: Date,
     default: Date.now
@@ -42,5 +60,7 @@ const appointmentSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+appointmentSchema.index({ doctorId: 1, date: 1, startTime: 1, endTime: 1 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);

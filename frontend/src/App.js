@@ -1,62 +1,120 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
-import Login from './components/Login';
-import Register from './components/Register';
-import ClientDashboard from './components/ClientDashboard';
-import AdminDashboard from './components/AdminDashboard';
+import React from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './routes/ProtectedRoute';
+import Landing from './pages/public/Landing';
+import Login from './pages/public/Login';
+import Register from './pages/public/Register';
+import DashboardPaciente from './pages/paciente/DashboardPaciente';
+import AgendarCita from './pages/paciente/citas/AgendarCita';
+import MisCitas from './pages/paciente/citas/MisCitas';
+import HistorialCitas from './pages/paciente/citas/HistorialCitas';
+import EditarCita from './pages/paciente/citas/EditarCita';
+import DashboardDoctor from './pages/doctor/DashboardDoctor';
+import DashboardAdmin from './pages/admin/DashboardAdmin';
+import GestionDoctores from './pages/admin/GestionDoctores';
+import GestionHorarios from './pages/admin/GestionHorarios';
+import Estadisticas from './pages/admin/Estadisticas';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('login');
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setCurrentPage(JSON.parse(storedUser).role === 'admin' ? 'admin' : 'client');
-    }
-  }, []);
-
-  const handleLoginSuccess = (userData) => {
-    setUser(userData);
-    setCurrentPage(userData.role === 'admin' ? 'admin' : 'client');
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setCurrentPage('login');
-  };
-
   return (
-    <div className="App">
-      {!user ? (
-        <>
-          {currentPage === 'login' && (
-            <Login 
-              onLoginSuccess={handleLoginSuccess}
-              onSwitchToRegister={() => setCurrentPage('register')}
-            />
-          )}
-          {currentPage === 'register' && (
-            <Register 
-              onRegisterSuccess={handleLoginSuccess}
-              onSwitchToLogin={() => setCurrentPage('login')}
-            />
-          )}
-        </>
-      ) : (
-        <>
-          {user.role === 'cliente' && (
-            <ClientDashboard user={user} onLogout={handleLogout} />
-          )}
-          {user.role === 'admin' && (
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          )}
-        </>
-      )}
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          <Route
+            path="/paciente"
+            element={
+              <ProtectedRoute allowedRoles={["paciente"]}>
+                <DashboardPaciente />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/paciente/citas/agendar"
+            element={
+              <ProtectedRoute allowedRoles={["paciente"]}>
+                <AgendarCita />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/paciente/citas"
+            element={
+              <ProtectedRoute allowedRoles={["paciente"]}>
+                <MisCitas />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/paciente/citas/historial"
+            element={
+              <ProtectedRoute allowedRoles={["paciente"]}>
+                <HistorialCitas />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/paciente/citas/editar/:id"
+            element={
+              <ProtectedRoute allowedRoles={["paciente"]}>
+                <EditarCita />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/doctor"
+            element={
+              <ProtectedRoute allowedRoles={["doctor"]}>
+                <DashboardDoctor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/doctores"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <GestionDoctores />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/horarios"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <GestionHorarios />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/estadisticas"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <Estadisticas />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

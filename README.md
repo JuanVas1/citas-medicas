@@ -228,6 +228,8 @@ npm start
 
 **Punto de entrada:** [START_HERE.md](START_HERE.md) ⭐
 
+**Implementación SDD:** [SDD_IMPLEMENTACION.md](SDD_IMPLEMENTACION.md)
+
 **Guía completa de documentos:** [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
 
 ### Documentos principales:

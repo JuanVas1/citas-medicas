@@ -1,28 +1,23 @@
 const mongoose = require('mongoose');
 
 const doctorSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'El nombre del doctor es requerido']
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
   },
-  speciality: {
+  specialty: {
     type: String,
-    required: [true, 'La especialidad es requerida'],
-    enum: ['Cardiología', 'Dermatología', 'Pediatría', 'Oftalmología', 'Neurología', 'Psicología', 'Generales']
+    required: [true, 'La especialidad es requerida']
   },
-  phone: {
+  office: {
     type: String,
     required: true
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
   licenseNumber: {
     type: String,
-    required: true,
-    unique: true
+    default: ''
   },
   active: {
     type: Boolean,

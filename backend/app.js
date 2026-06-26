@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const horarioRoutes = require('./routes/horario.routes');
+const { startReminderJob } = require('./services/reminder.service');
 const app = express();
 
 app.use(cors());
@@ -28,6 +29,7 @@ mongoose
   .connect(MONGODB_URI)
   .then(() => {
     console.log('MongoDB conectado correctamente');
+    startReminderJob();
     app.listen(PORT, () => {
       console.log(`Servidor escuchando en el puerto ${PORT}`);
     });

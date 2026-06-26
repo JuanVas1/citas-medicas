@@ -18,6 +18,14 @@ exports.createDoctor = async (req, res, next) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
+    // Verificar si el correo ya existe antes de intentar crear
+    const emailExistente = await User.findOne({ email: email.toLowerCase() });
+    if (emailExistente) {
+      return res.status(409).json({
+        error: `El correo "${email}" ya está registrado en el sistema. Cada doctor debe tener un correo único.`
+      });
+    }
+
     const user = await User.create({
       name,
       email,
@@ -35,6 +43,14 @@ exports.createDoctor = async (req, res, next) => {
 
     return res.status(201).json({ doctor });
   } catch (error) {
+    // Por si acaso, también capturar el error E11000 de MongoDB directamente
+    if (error.code === 11000) {
+      const campo = Object.keys(error.keyValue || {})[0] || 'email';
+      const valor = error.keyValue?.[campo] || '';
+      return res.status(409).json({
+        error: `El ${campo} "${valor}" ya está registrado. Cada doctor debe tener un correo único.`
+      });
+    }
     next(error);
   }
 };

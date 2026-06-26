@@ -9,6 +9,7 @@ const {
   getDoctorAgenda,
   create,
   updateStatus,
+  cancelByAdmin,
   rescheduleMine,
   cancelMine
 } = require('../controllers/cita.controller');
@@ -23,6 +24,7 @@ router.get('/mias/historial', authMiddleware, roleMiddleware('paciente'), getMin
 router.get('/agenda-doctor', authMiddleware, roleMiddleware('doctor'), getDoctorAgenda);
 router.post('/', authMiddleware, roleMiddleware('paciente'), create);
 router.patch('/:id/estado', authMiddleware, roleMiddleware('administrador', 'doctor'), updateStatus);
+router.patch('/:id/cancelar-admin', authMiddleware, roleMiddleware('administrador'), cancelByAdmin);
 router.put('/:id/reprogramar', authMiddleware, roleMiddleware('paciente'), rescheduleMine);
 router.patch('/:id/cancelar', authMiddleware, roleMiddleware('paciente'), cancelMine);
 router.get(

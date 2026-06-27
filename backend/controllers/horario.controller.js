@@ -43,13 +43,20 @@ exports.create = async (req, res, next) => {
 
 exports.deleteHorario = async (req, res, next) => {
   try {
-
     await Horario.findByIdAndDelete(req.params.id);
+    return res.status(200).json({ message: 'Horario eliminado' });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    return res.status(200).json({
-      message: 'Horario eliminado'
-    });
-
+exports.getByDoctor = async (req, res, next) => {
+  try {
+    const horarios = await Horario.find({
+      doctorId: req.params.doctorId,
+      active: true
+    }).sort({ day: 1, startTime: 1 });
+    return res.status(200).json(horarios);
   } catch (error) {
     next(error);
   }

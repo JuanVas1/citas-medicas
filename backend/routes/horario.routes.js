@@ -3,7 +3,8 @@ const express = require('express');
 const {
   getAll,
   create,
-  deleteHorario
+  deleteHorario,
+  getByDoctor
 } = require('../controllers/horario.controller');
 
 const authMiddleware = require('../middlewares/auth.middleware');
@@ -30,6 +31,12 @@ router.delete(
   authMiddleware,
   roleMiddleware('administrador'),
   deleteHorario
+);
+
+// Ruta pública: ver horarios de un doctor específico (pacientes, sin auth)
+router.get(
+  '/doctor/:doctorId',
+  getByDoctor
 );
 
 module.exports = router;

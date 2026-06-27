@@ -90,29 +90,23 @@ const DetalleCita = () => {
 
           </div>
 
-          <div className="flex gap-3 mt-8">
-
-            <button
-              onClick={() => cambiarEstado('confirmada')}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Confirmar
-            </button>
-
-            <button
-              onClick={() => cambiarEstado('completada')}
-              className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-              Completar
-            </button>
-
-            <button
-              onClick={() => cambiarEstado('cancelada')}
-              className="bg-red-600 text-white px-4 py-2 rounded"
-            >
-              Cancelar
-            </button>
-
+          <div className="flex flex-wrap gap-3 mt-8">
+            {(VALID_TRANSITIONS[cita.status] || []).map((nextStatus) => (
+              <button
+                key={nextStatus}
+                onClick={() => cambiarEstado(nextStatus)}
+                className={`rounded px-4 py-2 text-white ${
+                  nextStatus === 'confirmada' ? 'bg-blue-600 hover:bg-blue-700' :
+                  nextStatus === 'completada' ? 'bg-green-600 hover:bg-green-700' :
+                  nextStatus === 'cancelada' ? 'bg-red-600 hover:bg-red-700' :
+                  'bg-gray-600'
+                }`}
+              >
+                {nextStatus === 'confirmada' && 'Confirmar'}
+                {nextStatus === 'completada' && 'Completar'}
+                {nextStatus === 'cancelada' && 'Cancelar'}
+              </button>
+            ))}
           </div>
 
         </div>

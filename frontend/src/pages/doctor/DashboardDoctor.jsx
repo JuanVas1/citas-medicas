@@ -3,6 +3,20 @@ import { useAuth } from '../../context/AuthContext';
 import { citaService } from '../../services/citaService';
 import { Link } from 'react-router-dom';
 
+const VALID_TRANSITIONS = {
+  pendiente: ['confirmada', 'cancelada'],
+  confirmada: ['completada', 'cancelada'],
+  completada: [],
+  cancelada: []
+};
+
+const statusClasses = {
+  pendiente: 'bg-yellow-100 text-yellow-800',
+  confirmada: 'bg-blue-100 text-blue-800',
+  completada: 'bg-green-100 text-green-800',
+  cancelada: 'bg-red-100 text-red-800'
+};
+
 const DashboardDoctor = () => {
   const { user, logout } = useAuth();
 
@@ -11,7 +25,8 @@ const DashboardDoctor = () => {
     total: 0,
     pendientes: 0,
     confirmadas: 0,
-    completadas: 0
+    completadas: 0,
+    canceladas: 0
   });
 
   useEffect(() => {
@@ -30,12 +45,23 @@ const DashboardDoctor = () => {
         total: citas.length,
         pendientes: citas.filter(c => c.status === 'pendiente').length,
         confirmadas: citas.filter(c => c.status === 'confirmada').length,
-        completadas: citas.filter(c => c.status === 'completada').length
+        completadas: citas.filter(c => c.status === 'completada').length,
+        canceladas: citas.filter(c => c.status === 'cancelada').length
       });
 
     } catch (error) {
       console.error(error);
       setAgenda([]);
+    }
+  };
+
+  const actualizarEstado = async (id, status) => {
+    try {
+      await citaService.updateStatus(id, { status });
+      cargarAgenda();
+    } catch (error) {
+      console.error('Error actualizando estado:', error);
+      alert(error.response?.data?.error || 'No se pudo actualizar el estado de la cita');
     }
   };
 
@@ -67,7 +93,7 @@ const DashboardDoctor = () => {
         </div>
 
         {/* Estadísticas */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
+        <div className="grid md:grid-cols-5 gap-4 mb-8">
 
           <div className="bg-white rounded-xl shadow p-5">
             <h3 className="text-gray-500 text-sm">
@@ -106,6 +132,16 @@ const DashboardDoctor = () => {
 
             <p className="text-3xl font-bold text-green-600 mt-2">
               {estadisticas.completadas}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow p-5">
+            <h3 className="text-gray-500 text-sm">
+              Canceladas
+            </h3>
+
+            <p className="text-3xl font-bold text-red-600 mt-2">
+              {estadisticas.canceladas}
             </p>
           </div>
 
@@ -164,16 +200,31 @@ const DashboardDoctor = () => {
                       </td>
 
                       <td className="p-3">
-                        {cita.status}
+                        <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusClasses[cita.status] || 'bg-gray-100 text-gray-700'}`}>
+                          {cita.status}
+                        </span>
                       </td>
 
-                      <td className="p-3">
+                      <td className="p-3 space-y-2">
                         <Link
                           to={`/doctor/cita/${cita._id}`}
-                          className="text-blue-600 hover:underline"
+                          className="block text-blue-600 hover:underline"
                         >
                           Ver detalle
                         </Link>
+
+                        {(VALID_TRANSITIONS[cita.status] || []).map((nextStatus) => (
+                          <button
+                            key={nextStatus}
+                            type="button"
+                            onClick={() => actualizarEstado(cita._id, nextStatus)}
+                            className="inline-flex items-center rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                          >
+                            {nextStatus === 'confirmada' && 'Confirmar'}
+                            {nextStatus === 'completada' && 'Completar'}
+                            {nextStatus === 'cancelada' && 'Cancelar'}
+                          </button>
+                        ))}
                       </td>
 
                     </tr>

@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { citaService } from '../../services/citaService';
 
+const VALID_TRANSITIONS = {
+  pendiente: ['confirmada', 'cancelada'],
+  confirmada: ['completada', 'cancelada'],
+  completada: [],
+  cancelada: []
+};
+
 const DetalleCita = () => {
 
   const { id } = useParams();

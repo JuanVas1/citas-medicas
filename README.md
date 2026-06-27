@@ -104,15 +104,25 @@ npm start
 
 Panel Admin disponible en `http://localhost:3000`
 
-### Portal de Clientes (Terminal 3)
+### Portal de Pacientes (Terminal 3)
 
 ```bash
-cd client
+cd frontend
 npm install
 npm start
 ```
 
-Portal de Clientes disponible en `http://localhost:3001`
+Portal de Pacientes disponible en `http://localhost:3001`
+
+### Portal del Doctor (Terminal 4)
+
+```bash
+cd doctor-portal
+npm install
+npm start
+```
+
+Portal del Doctor disponible en `http://localhost:3002`
 
 ## Características
 
@@ -204,15 +214,22 @@ cd admin
 npm start
 ```
 
-**Terminal 3 - Portal Cliente:**
+**Terminal 3 - Portal Pacientes:**
 ```bash
-cd client
+cd frontend
+npm start
+```
+
+**Terminal 4 - Portal Doctor:**
+```bash
+cd doctor-portal
 npm start
 ```
 
 - Backend: `http://localhost:5000`
 - Admin: `http://localhost:3000`
-- Client: `http://localhost:3001`
+- Pacientes: `http://localhost:3001`
+- Doctor: `http://localhost:3002`
 
 ## Próximas Mejoras
 

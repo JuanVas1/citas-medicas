@@ -15,6 +15,11 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  consultorioId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Consultorio',
+    default: null
+  },
   licenseNumber: {
     type: String,
     default: ''

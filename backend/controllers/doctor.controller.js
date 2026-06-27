@@ -12,7 +12,7 @@ exports.getDoctors = async (req, res, next) => {
 
 exports.createDoctor = async (req, res, next) => {
   try {
-    const { name, email, password, phone, specialty, office, licenseNumber } = req.body;
+    const { name, email, password, phone, specialty, office, licenseNumber, consultorioId } = req.body;
 
     if (!name || !email || !password || !phone || !specialty || !office) {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
@@ -38,7 +38,8 @@ exports.createDoctor = async (req, res, next) => {
       userId: user._id,
       specialty,
       office,
-      licenseNumber: licenseNumber || ''
+      licenseNumber: licenseNumber || '',
+      consultorioId: consultorioId || null
     });
 
     return res.status(201).json({ doctor });

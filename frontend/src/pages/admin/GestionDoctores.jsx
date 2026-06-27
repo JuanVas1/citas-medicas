@@ -66,7 +66,7 @@ const GestionDoctores = () => {
 
       <div className="mx-auto max-w-6xl">
 
-        <h1 className="text-3xl font-bold mb-6">
+        <h1 className="text-3xl font-bold mb-6" style={{ color: '#2563EB' }}>
           Gestión de Doctores
         </h1>
 
@@ -74,7 +74,7 @@ const GestionDoctores = () => {
 
         <div className="bg-white p-6 rounded-xl shadow mb-8">
 
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-xl font-semibold mb-4" style={{ color: '#2563EB' }}>
             Registrar Doctor
           </h2>
 
@@ -140,7 +140,8 @@ const GestionDoctores = () => {
             />
 
             <button
-              className="bg-blue-600 text-white rounded p-2"
+              className="text-white rounded p-2"
+              style={{ backgroundColor: '#2563EB' }}
             >
               Crear Doctor
             </button>
@@ -153,7 +154,7 @@ const GestionDoctores = () => {
 
         <div className="bg-white rounded-xl shadow p-6">
 
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-xl font-semibold mb-4" style={{ color: '#2563EB' }}>
             Doctores Registrados
           </h2>
 

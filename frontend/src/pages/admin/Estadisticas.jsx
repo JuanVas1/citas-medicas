@@ -69,13 +69,14 @@ const Estadisticas = () => {
 			<div className="mx-auto max-w-7xl">
 				<Link
 					to="/admin"
-					className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-blue-700"
-				>
-					<ArrowLeft size={16} />
+				className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium"
+				style={{ color: '#2563EB' }}
+			>
+				<ArrowLeft size={16} />
 					Volver al panel admin
 				</Link>
 
-				<h1 className="text-3xl font-bold text-gray-900">Estadisticas del Sistema</h1>
+				<h1 className="text-3xl font-bold" style={{ color: '#2563EB' }}>Estadisticas del Sistema</h1>
 				<p className="mt-1 text-sm text-gray-600">Resumen general de citas, doctores y horarios.</p>
 
 				{error && (
@@ -105,7 +106,7 @@ const Estadisticas = () => {
 							<span className="text-sm">Confirmadas</span>
 							<CheckCircle2 size={17} />
 						</div>
-						<p className="mt-3 text-3xl font-bold text-blue-600">{resumen.confirmadas}</p>
+						<p className="mt-3 text-3xl font-bold" style={{ color: '#2563EB' }}>{resumen.confirmadas}</p>
 						<p className="mt-1 text-xs text-gray-500">{calcularPorcentaje(resumen.confirmadas, resumen.total)}</p>
 					</article>
 
@@ -132,7 +133,7 @@ const Estadisticas = () => {
 					<article className="rounded-xl bg-white p-5 shadow-sm">
 						<p className="text-sm text-gray-500">Doctores activos</p>
 						<p className="mt-2 flex items-center gap-2 text-3xl font-bold text-gray-900">
-							<Stethoscope size={22} className="text-blue-600" />
+							<Stethoscope size={22} style={{ color: '#2563EB' }} />
 							{doctores.length}
 						</p>
 					</article>
@@ -140,14 +141,14 @@ const Estadisticas = () => {
 					<article className="rounded-xl bg-white p-5 shadow-sm">
 						<p className="text-sm text-gray-500">Horarios registrados</p>
 						<p className="mt-2 flex items-center gap-2 text-3xl font-bold text-gray-900">
-							<Clock3 size={22} className="text-blue-600" />
+							<Clock3 size={22} style={{ color: '#2563EB' }} />
 							{horarios.length}
 						</p>
 					</article>
 				</div>
 
 				<section className="mt-6 rounded-xl bg-white p-5 shadow-sm">
-					<h2 className="text-lg font-semibold text-gray-900">Ultimas citas</h2>
+					<h2 className="text-lg font-semibold" style={{ color: '#2563EB' }}>Ultimas citas</h2>
 
 					{loading && <p className="mt-3 text-sm text-gray-500">Cargando datos...</p>}
 

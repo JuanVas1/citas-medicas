@@ -9,25 +9,31 @@ import {
   Eye,
   HeartPulse,
 } from 'lucide-react';
+import './PatientDashboard.css';
+import Sidebar from '../../components/Sidebar';
 import { useAuth } from '../../context/AuthContext';
 // import api from '../../services/api'; // <-- tu instancia de axios, descomenta cuando la conectes
 
 const ACCIONES = [
   {
     label: 'Agendar Cita',
+    subtitle: 'Reserva con un doctor',
     icon: CalendarPlus,
     to: '/paciente/citas/agendar',
   },
   {
     label: 'Ver Mis Citas',
+    subtitle: 'Próximas y pasadas',
     icon: CalendarDays,
     to: '/paciente/citas',
   },
   {
     label: 'Historial',
+    subtitle: 'Consultas anteriores',
     icon: History,
     to: '/paciente/citas/historial',
   },
+  
 ];
 
 // Datos de ejemplo — reemplaza esto por la respuesta real de tu backend (GET /especialidades, etc.)
@@ -70,15 +76,17 @@ const DashboardPaciente = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#f5f8fd] px-4 py-10">
-      <div className="mx-auto max-w-5xl">
+    <div className="app-layout">
+      <Sidebar />
+      <main className="patient-dashboard min-h-screen px-4 py-10">
+        <div className="patient-container mx-auto max-w-5xl">
         {/* Encabezado de bienvenida */}
         <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1565D8] text-white">
+          <span className="brand-avatar">
             <HeartPulse size={22} />
           </span>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="welcome-title">
               Bienvenido, {user?.nombre || 'Paciente'}
             </h1>
             <p className="text-sm text-gray-500">
@@ -88,26 +96,29 @@ const DashboardPaciente = () => {
         </div>
 
         {/* Acciones rápidas */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {ACCIONES.map(({ label, icon: Icon, to }) => (
+        <div className="mt-8 actions-grid">
+          {ACCIONES.map(({ label, subtitle, icon: Icon, to }) => (
             <Link
               key={label}
               to={to}
-              className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-5 py-4 shadow-sm transition hover:border-[#1565D8]/30 hover:shadow-md"
+              className="action-card flex items-center gap-3 rounded-xl px-5 py-4"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1565D8]/10 text-[#1565D8]">
+              <span className="action-icon">
                 <Icon size={20} />
               </span>
-              <span className="text-sm font-semibold text-gray-800">{label}</span>
+              <div className="action-text">
+                <span className="action-label">{label}</span>
+                {subtitle && <span className="action-subtitle">{subtitle}</span>}
+              </div>
             </Link>
           ))}
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {/* Doctores disponibles */}
-          <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
-            <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
-              <Stethoscope size={18} className="text-[#1565D8]" />
+          <section className="panel-card lg:col-span-2">
+            <h2 className="panel-title">
+              <Stethoscope size={18} className="icon-accent" />
               Doctores Disponibles
             </h2>
 
@@ -138,19 +149,16 @@ const DashboardPaciente = () => {
                 ))}
             </div>
 
-            <Link
-              to="/paciente/citas/agendar"
-              className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#1565D8] hover:underline"
-            >
-              <Eye size={15} />
+            <Link to="/paciente/citas/agendar" className="mt-5 link-accent">
+              <Eye size={15} className="icon-accent" />
               Ver todos los doctores
             </Link>
           </section>
 
           {/* Próxima cita */}
-          <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-            <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
-              <Clock size={18} className="text-[#1565D8]" />
+          <section className="panel-card">
+            <h2 className="panel-title">
+              <Clock size={18} className="icon-accent" />
               Próxima Cita
             </h2>
 
@@ -177,16 +185,26 @@ const DashboardPaciente = () => {
               </div>
             )}
 
-            <Link
-              to="/paciente/citas"
-              className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#1565D8] hover:underline"
-            >
-              Ver mis citas
-            </Link>
+            <Link to="/paciente/citas" className="mt-5 link-accent">Ver mis citas</Link>
           </section>
         </div>
-      </div>
-    </main>
+
+        {/* Historial reciente panel below the two panels */}
+        <div className="mt-6">
+          <section className="panel-card">
+            <div className="panel-header">
+              <h3 className="panel-title"><History size={18} className="icon-accent" /> Historial reciente</h3>
+              <Link to="/paciente/citas/historial" className="link-accent">Ver historial</Link>
+            </div>
+
+            <div className="panel-list">
+              <p className="empty-recent text-sm">No hay historial reciente para mostrar.</p>
+            </div>
+          </section>
+        </div>
+        </div>
+      </main>
+    </div>
   );
 };
 

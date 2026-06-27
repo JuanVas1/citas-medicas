@@ -1,0 +1,150 @@
+/* Patient dashboard theme using provided palette */
+:root {
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-dark: #1E3A8A;
+  --secondary: #0891B2;
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --text: #0F172A;
+  --muted: #64748B;
+  --border: #E2E8F0;
+}
+
+.patient-dashboard {
+  background: linear-gradient(180deg, #0b1117 0%, #0b0f14 100%);
+  color: #e6eef8;
+  min-height: 100vh;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.app-layout { display:flex; min-height:100vh; width:100%; background: linear-gradient(180deg,#07090c 0%, #0b0f14 100%); overflow-x:hidden }
+
+.patient-dashboard { flex:1 }
+
+.patient-container {
+  max-width: 1360px;
+}
+
+.brand-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+}
+
+.welcome-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff; /* más claro para destacar */
+  margin: 0;
+}
+
+/* Action cards */
+.action-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 4px 12px rgba(2,6,23,0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 110px;
+  width: 100%;
+  max-width: 260px;
+  display: flex;
+  align-items: center;
+}
+.action-card:hover { transform: translateY(-4px); }
+
+.action-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(37,99,235,0.12);
+  color: var(--primary);
+}
+.action-label {
+  color: #e6eef8;
+  font-weight: 700;
+}
+
+.action-text { display:flex; flex-direction:column }
+.action-subtitle { color: rgba(230,238,248,0.75); font-size: 12px; margin-top: 3px }
+
+/* Panels */
+.panel-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: var(--primary-dark); /* azul oscuro */
+}
+
+.icon-accent { color: var(--primary); }
+
+.link-accent { color: var(--primary); font-weight: 700; display:inline-flex; gap:8px; align-items:center }
+
+.panel-list { margin-top: 12px; display:flex; flex-direction:column; gap:12px }
+
+/* Actions grid: responsive columns so more cards fit on wide screens */
+.actions-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .actions-grid { grid-template-columns: repeat(3, 260px); }
+}
+
+@media (min-width: 1100px) {
+  .actions-grid { grid-template-columns: repeat(3, 260px); }
+}
+
+.appointment-item, .doctor-item {
+  display:flex; align-items:center; gap:12px; padding:8px 6px; border-radius:8px;
+  background: rgba(255,255,255,0.01);
+}
+
+.empty-recent { color: #9CA3AF; font-weight: 700 } /* plomo claro */
+
+.avatar-circle { width:38px; height:38px; border-radius:50%; background: rgba(255,255,255,0.06); color: #e6eef8; display:flex; align-items:center; justify-content:center; font-weight:700 }
+
+.appoint-name, .doctor-name { color: #e6eef8; font-size:14px }
+.appoint-meta, .doctor-specialty { color: rgba(230,238,248,0.7); font-size:13px }
+
+.status-badge { padding:6px 10px; border-radius:8px; font-weight:700; font-size:12px }
+.status-badge.pendiente { background:#fef3c7; color:#d97706 }
+.status-badge.confirmada { background:#dbeafe; color:#1e40af }
+.status-badge.completada { background:#dcfce7; color:#15803d }
+
+.doctor-status-dot { margin-left:auto }
+.dot.available { width:12px; height:12px; border-radius:50%; background:#10b981 }
+.dot.offline { width:12px; height:12px; border-radius:50%; background:#ef4444 }
+
+/* If a card uses a white background, make its titles darker for readability */
+.panel-card.white .panel-title,
+.action-card.white .action-label,
+.panel-card.white .link-accent {
+  color: var(--text);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .patient-container { padding: 0 16px }
+  .dashboard-panels { grid-template-columns: 1fr }
+}

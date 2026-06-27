@@ -81,13 +81,13 @@ const GestionHorarios = () => {
 
       <div className="mx-auto max-w-6xl">
 
-        <h1 className="mb-6 text-3xl font-bold">
+        <h1 className="mb-6 text-3xl font-bold" style={{ color: '#2563EB' }}>
           Gestión de Horarios
         </h1>
 
         <div className="mb-8 rounded-xl bg-white p-6 shadow">
 
-          <h2 className="mb-4 text-xl font-semibold">
+          <h2 className="mb-4 text-xl font-semibold" style={{ color: '#2563EB' }}>
             Nuevo Horario
           </h2>
 
@@ -153,7 +153,8 @@ const GestionHorarios = () => {
 
             <button
               type="submit"
-              className="rounded bg-blue-600 p-3 text-white hover:bg-blue-700"
+              className="rounded p-3 text-white hover:opacity-90"
+              style={{ backgroundColor: '#2563EB' }}
             >
               Crear Horario
             </button>
@@ -164,7 +165,7 @@ const GestionHorarios = () => {
 
         <div className="rounded-xl bg-white p-6 shadow">
 
-          <h2 className="mb-4 text-xl font-semibold">
+          <h2 className="mb-4 text-xl font-semibold" style={{ color: '#2563EB' }}>
             Horarios Registrados
           </h2>
 

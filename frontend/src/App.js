@@ -87,6 +87,30 @@ function App() {
             }
           />
           <Route
+            path="/admin/citas"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="citas" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/pacientes"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="pacientes" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/usuarios"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="usuarios" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/horarios"
             element={
               <ProtectedRoute allowedRoles={["administrador"]}>
@@ -106,7 +130,7 @@ function App() {
             path="/admin"
             element={
               <ProtectedRoute allowedRoles={["administrador"]}>
-                <DashboardAdmin />
+                <DashboardAdmin initialTab="dashboard" />
               </ProtectedRoute>
             }
           />

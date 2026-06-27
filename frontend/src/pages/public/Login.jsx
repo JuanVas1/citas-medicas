@@ -22,9 +22,13 @@ const Login = () => {
     try {
       await login(form);
       const savedUser = JSON.parse(localStorage.getItem('user'));
-      if (savedUser.role === 'paciente') navigate('/paciente');
-      if (savedUser.role === 'doctor') navigate('/doctor');
-      if (savedUser.role === 'administrador') navigate('/admin');
+      const roleRaw = (savedUser?.role || '').toString().trim().toLowerCase();
+      const role = roleRaw === 'admin' ? 'administrador' : roleRaw;
+
+      if (role === 'paciente') navigate('/paciente');
+      else if (role === 'doctor') navigate('/doctor');
+      else if (role === 'administrador') navigate('/admin');
+      else navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'No fue posible iniciar sesión');
     } finally {

@@ -11,6 +11,7 @@ import MisCitas from './pages/paciente/citas/MisCitas';
 import HistorialCitas from './pages/paciente/citas/HistorialCitas';
 import EditarCita from './pages/paciente/citas/EditarCita';
 import DashboardDoctor from './pages/doctor/DashboardDoctor';
+import DetalleCita from './pages/doctor/DetalleCita';
 import DashboardAdmin from './pages/admin/DashboardAdmin';
 import GestionDoctores from './pages/admin/GestionDoctores';
 import GestionHorarios from './pages/admin/GestionHorarios';
@@ -75,6 +76,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["doctor"]}>
                 <DashboardDoctor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/cita/:id"
+            element={
+              <ProtectedRoute allowedRoles={["doctor"]}>
+                <DetalleCita />
               </ProtectedRoute>
             }
           />

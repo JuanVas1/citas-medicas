@@ -14,6 +14,8 @@ import DashboardAdmin from './pages/admin/DashboardAdmin';
 import GestionDoctores from './pages/admin/GestionDoctores';
 import GestionHorarios from './pages/admin/GestionHorarios';
 import Estadisticas from './pages/admin/Estadisticas';
+import DashboardDoctor from './pages/doctor/DashboardDoctor';
+import DetalleCita from './pages/doctor/DetalleCita';
 
 function App() {
   return (
@@ -93,6 +95,24 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/doctor"
+            element={
+              <ProtectedRoute allowedRoles={["doctor"]}>
+                <DashboardDoctor />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/doctor/cita/:id"
+            element={
+              <ProtectedRoute allowedRoles={["doctor"]}>
+                <DetalleCita />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/admin"
             element={

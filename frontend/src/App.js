@@ -13,6 +13,7 @@ import EditarCita from './pages/paciente/citas/EditarCita';
 import DashboardAdmin from './pages/admin/DashboardAdmin';
 import GestionDoctores from './pages/admin/GestionDoctores';
 import GestionHorarios from './pages/admin/GestionHorarios';
+import GestionConsultorios from './pages/admin/GestionConsultorios';
 import Estadisticas from './pages/admin/Estadisticas';
 import DashboardDoctor from './pages/doctor/DashboardDoctor';
 import DetalleCita from './pages/doctor/DetalleCita';
@@ -84,6 +85,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["administrador"]}>
                 <GestionHorarios />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/consultorios"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <GestionConsultorios />
               </ProtectedRoute>
             }
           />

@@ -145,6 +145,19 @@ const DashboardAdmin = () => {
           </Link>
 
           <Link
+            to="/admin/consultorios"
+            className="rounded-xl bg-white p-6 shadow hover:shadow-lg transition"
+          >
+            <h3 className="font-semibold text-lg">
+              Gestionar Consultorios
+            </h3>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Registrar y administrar consultorios.
+            </p>
+          </Link>
+
+          <Link
             to="/admin/estadisticas"
             className="rounded-xl bg-white p-6 shadow hover:shadow-lg transition"
           >

@@ -9,7 +9,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles.includes(user.role)) {
+  // Normalize role: trim, lowercase, accept alias 'admin'
+  const rawRole = (user.role || '').toString();
+  const normalizedRole = rawRole.trim().toLowerCase() === 'admin' ? 'administrador' : rawRole.trim().toLowerCase();
+  const allowedNormalized = (allowedRoles || []).map(r => r.toString().trim().toLowerCase());
+
+  if (!allowedNormalized.includes(normalizedRole)) {
     return <Navigate to="/" replace />;
   }
 

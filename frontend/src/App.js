@@ -6,17 +6,13 @@ import Landing from './pages/public/Landing';
 import Login from './pages/public/Login';
 import Register from './pages/public/Register';
 import DashboardPaciente from './pages/paciente/DashboardPaciente';
-import AgendarCita from './pages/paciente/citas/AgendarCita';
-import MisCitas from './pages/paciente/citas/MisCitas';
-import HistorialCitas from './pages/paciente/citas/HistorialCitas';
 import EditarCita from './pages/paciente/citas/EditarCita';
+import DashboardDoctor from './pages/doctor/DashboardDoctor';
+import DetalleCita from './pages/doctor/DetalleCita';
 import DashboardAdmin from './pages/admin/DashboardAdmin';
 import GestionDoctores from './pages/admin/GestionDoctores';
 import GestionHorarios from './pages/admin/GestionHorarios';
-import GestionConsultorios from './pages/admin/GestionConsultorios';
 import Estadisticas from './pages/admin/Estadisticas';
-import DashboardDoctor from './pages/doctor/DashboardDoctor';
-import DetalleCita from './pages/doctor/DetalleCita';
 
 function App() {
   return (
@@ -40,7 +36,7 @@ function App() {
             path="/paciente/citas/agendar"
             element={
               <ProtectedRoute allowedRoles={["paciente"]}>
-                <AgendarCita />
+                <DashboardPaciente />
               </ProtectedRoute>
             }
           />
@@ -49,7 +45,7 @@ function App() {
             path="/paciente/citas"
             element={
               <ProtectedRoute allowedRoles={["paciente"]}>
-                <MisCitas />
+                <DashboardPaciente />
               </ProtectedRoute>
             }
           />
@@ -58,7 +54,7 @@ function App() {
             path="/paciente/citas/historial"
             element={
               <ProtectedRoute allowedRoles={["paciente"]}>
-                <HistorialCitas />
+                <DashboardPaciente />
               </ProtectedRoute>
             }
           />
@@ -73,37 +69,23 @@ function App() {
           />
 
           <Route
-            path="/admin/doctores"
+            path="/paciente/doctores"
             element={
-              <ProtectedRoute allowedRoles={["administrador"]}>
-                <GestionDoctores />
+              <ProtectedRoute allowedRoles={["paciente"]}>
+                <DashboardPaciente />
               </ProtectedRoute>
             }
           />
+
           <Route
-            path="/admin/horarios"
+            path="/paciente/perfil"
             element={
-              <ProtectedRoute allowedRoles={["administrador"]}>
-                <GestionHorarios />
+              <ProtectedRoute allowedRoles={["paciente"]}>
+                <DashboardPaciente />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/consultorios"
-            element={
-              <ProtectedRoute allowedRoles={["administrador"]}>
-                <GestionConsultorios />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/estadisticas"
-            element={
-              <ProtectedRoute allowedRoles={["administrador"]}>
-                <Estadisticas />
-              </ProtectedRoute>
-            }
-          />
+
           <Route
             path="/doctor"
             element={
@@ -112,7 +94,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/doctor/cita/:id"
             element={
@@ -121,12 +102,75 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/admin/doctores"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="doctores" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/citas"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="citas" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/pacientes"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="pacientes" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/usuarios"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="usuarios" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/horarios"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="horarios" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/estadisticas"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="estadisticas" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/especialidades"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="especialidades" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/facturacion"
+            element={
+              <ProtectedRoute allowedRoles={["administrador"]}>
+                <DashboardAdmin initialTab="facturacion" />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin"
             element={
               <ProtectedRoute allowedRoles={["administrador"]}>
-                <DashboardAdmin />
+                <DashboardAdmin initialTab="dashboard" />
               </ProtectedRoute>
             }
           />

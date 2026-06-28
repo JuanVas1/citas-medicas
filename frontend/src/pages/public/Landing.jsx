@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   HeartPulse,
   CalendarClock,
@@ -10,49 +10,81 @@ import {
   Menu,
   X,
   Quote,
+  ArrowRight,
+  Clock,
+  Star,
+  ChevronDown,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+/* ─── Datos ─────────────────────────────────────────────────── */
 const NAV_LINKS = [
   { label: "Inicio", href: "#inicio" },
   { label: "Servicios", href: "#servicios" },
-  { label: "Sobre Nosotros", href: "#nosotros" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Cómo funciona", href: "#como-funciona" },
+  { label: "Testimonios", href: "#testimonios" },
+];
+
+const STATS = [
+  { value: 5000, label: "Citas agendadas", suffix: "+" },
+  { value: 120,  label: "Médicos activos", suffix: "+" },
+  { value: 98,   label: "Satisfacción",    suffix: "%" },
+  { value: 24,   label: "Soporte",         suffix: "/7" },
 ];
 
 const FEATURES = [
   {
     icon: CalendarClock,
-    title: "Citas en Línea Rápidas",
-    description: "Encuentra y agenda tu horario en segundos.",
+    title: "Citas en Línea Instantáneas",
+    description: "Agenda tu consulta en menos de 2 minutos. Sin llamadas, sin filas, sin esperas innecesarias.",
+    color: "from-blue-500 to-cyan-500",
+    bg: "bg-blue-50",
+    accent: "text-blue-600",
   },
   {
     icon: BellRing,
-    title: "Notificaciones Inteligentes",
-    description: "Recordatorios automáticos y alertas por IA.",
+    title: "Recordatorios Automáticos",
+    description: "Recibe alertas 24 horas antes de tu cita para que nunca olvides tu atención médica.",
+    color: "from-violet-500 to-purple-500",
+    bg: "bg-violet-50",
+    accent: "text-violet-600",
   },
   {
     icon: ShieldCheck,
-    title: "Seguridad de Datos",
-    description: "Protección de tu historial médico garantizada.",
+    title: "Datos 100% Seguros",
+    description: "Tu historial médico protegido con cifrado de nivel bancario y acceso controlado.",
+    color: "from-emerald-500 to-teal-500",
+    bg: "bg-emerald-50",
+    accent: "text-emerald-600",
+  },
+  {
+    icon: Clock,
+    title: "Disponibilidad en Tiempo Real",
+    description: "Consulta los horarios disponibles al instante y escoge el que mejor se adapta a ti.",
+    color: "from-orange-500 to-amber-500",
+    bg: "bg-orange-50",
+    accent: "text-orange-600",
   },
 ];
 
 const STEPS = [
   {
+    number: "01",
     icon: UserPlus,
-    title: "Regístrate",
-    description: "Encuentra y agenda tu horario en segundos.",
+    title: "Crea tu cuenta",
+    description: "Regístrate gratis en menos de un minuto con tu correo y datos básicos.",
   },
   {
+    number: "02",
     icon: Stethoscope,
-    title: "Selecciona Médico y Horario",
-    description: "Selecciona médico y horario y alertas por IA.",
+    title: "Elige tu especialista",
+    description: "Busca por especialidad, revisa disponibilidad y selecciona el horario ideal.",
   },
   {
+    number: "03",
     icon: CheckCircle2,
-    title: "Confirma tu Cita",
-    description: "Confirmación de tu historial médico garantizada al confirmar tu cita.",
+    title: "Confirma y listo",
+    description: "Recibe confirmación inmediata y recordatorio automático antes de tu cita.",
   },
 ];
 
@@ -60,144 +92,332 @@ const TESTIMONIALS = [
   {
     name: "Lucía Fernández",
     role: "Paciente",
-    text: "Agendar mi cita tomó menos de un minuto. Los recordatorios automáticos me han salvado de varios olvidos.",
+    initials: "LF",
+    stars: 5,
+    text: "Agendar mi cita tomó menos de un minuto. Los recordatorios automáticos me han salvado de varios olvidos. ¡Increíble servicio!",
+    color: "bg-blue-100 text-blue-700",
   },
   {
     name: "Jorge Medina",
     role: "Paciente",
-    text: "Por fin un sistema de citas médicas que no se siente complicado. La confirmación es inmediata y clara.",
+    initials: "JM",
+    stars: 5,
+    text: "Por fin un sistema de citas médicas que no se siente complicado. La confirmación es inmediata, el diseño es muy intuitivo.",
+    color: "bg-violet-100 text-violet-700",
   },
   {
     name: "Andrea Salas",
     role: "Paciente",
-    text: "Me da tranquilidad saber que mi historial médico está protegido. Lo recomiendo totalmente.",
+    initials: "AS",
+    stars: 5,
+    text: "Me da tranquilidad saber que mi historial médico está protegido. Lo recomiendo totalmente a toda mi familia.",
+    color: "bg-emerald-100 text-emerald-700",
   },
 ];
 
+/* ─── Hook: contador animado ──────────────────────────────────── */
+function useCounter(target, duration = 2000, start = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!start) return;
+    let startTime = null;
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      setCount(Math.floor(progress * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration, start]);
+  return count;
+}
+
+/* ─── Hook: intersection observer ────────────────────────────── */
+function useInView(threshold = 0.3) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setInView(true); },
+      { threshold }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return [ref, inView];
+}
+
+/* ─── Stat Card ───────────────────────────────────────────────── */
+function StatCard({ value, label, suffix, animate }) {
+  const count = useCounter(value, 1800, animate);
+  return (
+    <div className="text-center">
+      <p className="text-4xl font-extrabold text-white">
+        {count.toLocaleString()}{suffix}
+      </p>
+      <p className="mt-1 text-sm text-blue-200 font-medium">{label}</p>
+    </div>
+  );
+}
+
+/* ─── Navbar ──────────────────────────────────────────────────── */
 function Navbar() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-100">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <a href="#inicio" className="flex items-center gap-2 font-bold text-slate-950">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
-            <HeartPulse size={22} />
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <a href="#inicio" className="flex items-center gap-2.5">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-md">
+            <HeartPulse size={20} />
           </span>
-          <span className="text-base tracking-wider font-extrabold text-blue-900">HOSPITAL DIGITAL</span>
+          <span className="text-lg font-extrabold tracking-wide text-slate-900">
+            MediCitas
+          </span>
         </a>
 
         <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-600 md:flex">
           {NAV_LINKS.map((link) => (
-            <a key={link.label} href={link.href} className="transition hover:text-blue-600">
+            <a
+              key={link.label}
+              href={link.href}
+              className="relative transition hover:text-blue-600 after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-blue-600 after:transition-all hover:after:w-full"
+            >
               {link.label}
             </a>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           <Link
             to="/login"
-            className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 hover:shadow-lg"
+            className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition px-4 py-2"
           >
-            Agendar Cita Ahora
+            Iniciar sesión
+          </Link>
+          <Link
+            to="/register"
+            className="rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Registrarse gratis
           </Link>
         </div>
 
         <button
           aria-label="Abrir menú"
-          className="text-slate-700 md:hidden p-2 rounded-lg hover:bg-slate-50"
+          className="text-slate-700 md:hidden p-2 rounded-xl hover:bg-slate-100 transition"
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? <X size={24} /> : <Menu size={24} />}
+          {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
-      {/* Menú Móvil Corregido */}
       {open && (
-        <div className="absolute top-full left-0 w-full border-t border-slate-100 bg-white px-6 py-6 shadow-xl md:hidden flex flex-col gap-4 z-50">
-          <nav className="flex flex-col gap-4 text-base font-medium text-slate-700">
-            {NAV_LINKS.map((link) => (
-              <a key={link.label} href={link.href} className="py-2 hover:text-blue-600 border-b border-slate-50" onClick={() => setOpen(false)}>
-                {link.label}
-              </a>
-            ))}
-            <Link
-              to="/login"
+        <div className="absolute top-full left-0 w-full border-t border-slate-100 bg-white/98 backdrop-blur-md px-6 py-6 shadow-xl md:hidden flex flex-col gap-4 z-50">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="py-2.5 text-base font-medium text-slate-700 hover:text-blue-600 border-b border-slate-50 transition"
               onClick={() => setOpen(false)}
-              className="mt-4 rounded-full bg-blue-600 py-3 text-center font-bold text-white shadow-md"
             >
-              Agendar Cita Ahora
-            </Link>
-          </nav>
+              {link.label}
+            </a>
+          ))}
+          <Link
+            to="/login"
+            onClick={() => setOpen(false)}
+            className="mt-2 rounded-full border border-slate-200 py-3 text-center font-semibold text-slate-700 hover:border-blue-300 transition"
+          >
+            Iniciar sesión
+          </Link>
+          <Link
+            to="/register"
+            onClick={() => setOpen(false)}
+            className="rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 py-3 text-center font-bold text-white shadow-md transition"
+          >
+            Registrarse gratis
+          </Link>
         </div>
       )}
     </header>
   );
 }
 
+/* ─── Hero ────────────────────────────────────────────────────── */
 function Hero() {
   return (
-    <section id="inicio" className="relative overflow-hidden bg-gradient-to-br from-blue-50/70 via-white to-white py-12 md:py-20">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-12">
-        
-        {/* Columna Texto */}
-        <div className="md:col-span-7 flex flex-col justify-center text-center md:text-left z-10">
-          <span className="inline-flex self-center md:self-start items-center gap-2 rounded-full bg-blue-50 border border-blue-100 px-4 py-1.5 text-xs font-bold text-blue-700 shadow-sm">
-            <HeartPulse size={14} className="animate-pulse" /> Atención médica simplificada
+    <section
+      id="inicio"
+      className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 pt-16 pb-0"
+    >
+      {/* Orbes decorativos */}
+      <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
+      <div className="pointer-events-none absolute top-10 right-10 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
+
+      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2">
+        {/* Texto */}
+        <div className="flex flex-col justify-center py-16 text-center md:text-left">
+          <span className="inline-flex self-center md:self-start items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-400">
+            <HeartPulse size={12} className="animate-pulse" />
+            Sistema de Citas Médicas
           </span>
-          <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl leading-[1.15]">
-            Agenda tu cita médica <br className="hidden lg:inline"/>
-            <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">de forma rápida y segura</span>
+
+          <h1 className="mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+            Tu salud,{" "}
+            <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              a un clic
+            </span>{" "}
+            de distancia
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-slate-600 leading-relaxed mx-auto md:mx-0">
-            El sistema inteligente que simplifica tu atención de salud con recordatorios por IA y acceso inmediato a especialistas.
+
+          <p className="mt-6 max-w-xl text-lg text-slate-400 leading-relaxed mx-auto md:mx-0">
+            Agenda citas con los mejores especialistas en segundos. Sin esperas,
+            sin complicaciones. Recordatorios automáticos para que nunca pierdas
+            tu cita.
           </p>
+
           <div className="mt-10 flex flex-wrap justify-center md:justify-start gap-4">
             <Link
-              to="/login"
-              className="rounded-full bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98]"
+              to="/register"
+              className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-8 py-4 text-base font-bold text-white shadow-xl shadow-blue-900/40 transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
             >
-              Iniciar sesión
+              Agendar cita gratis
+              <ArrowRight size={16} className="transition group-hover:translate-x-1" />
             </Link>
             <a
-              href="#servicios"
-              className="rounded-full bg-white border border-slate-200 px-8 py-4 text-base font-bold text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30"
+              href="#como-funciona"
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/10 hover:border-white/30"
             >
-              Ver Servicios
+              Cómo funciona
+              <ChevronDown size={16} />
             </a>
           </div>
-        </div>
 
-        {/* Columna Imagen Integrada */}
-        <div className="md:col-span-5 relative w-full flex justify-center items-center">
-          <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-tr from-blue-400 to-cyan-300 opacity-20 blur-3xl -z-10" />
-          <div className="relative overflow-hidden rounded-[2.5rem] border-4 border-white shadow-2xl w-full max-w-md md:max-w-none aspect-[4/5]">
-            <img
-              src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=900&auto=format&fit=crop"
-              alt="Médico profesional usando tablet"
-              className="h-full w-full object-cover object-center transform hover:scale-105 transition duration-500"
-            />
+          {/* Trust badges */}
+          <div className="mt-10 flex flex-wrap justify-center md:justify-start items-center gap-6 text-sm text-slate-400">
+            {["Sin tarjeta de crédito", "100% gratuito", "Datos seguros"].map((t) => (
+              <span key={t} className="flex items-center gap-1.5">
+                <CheckCircle2 size={14} className="text-cyan-400" />
+                {t}
+              </span>
+            ))}
           </div>
         </div>
 
+        {/* Imagen + card flotante */}
+        <div className="relative flex justify-center pb-0 pt-8">
+          <div className="relative w-full max-w-lg">
+            {/* Glow */}
+            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-500/30 to-cyan-400/20 blur-2xl" />
+
+            {/* Imagen */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
+              <img
+                src="/hero_doctor.png"
+                alt="Doctora profesional con tablet"
+                className="w-full h-auto object-cover"
+                style={{ maxHeight: "480px", objectPosition: "top" }}
+              />
+              {/* Overlay sutil */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
+            </div>
+
+            {/* Card flotante: próxima cita */}
+            <div className="absolute -bottom-5 -left-6 rounded-2xl bg-white p-4 shadow-2xl border border-slate-100 flex items-center gap-3 min-w-[200px]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
+                <CalendarClock size={18} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 font-medium">Próxima cita</p>
+                <p className="text-sm font-bold text-slate-900">Mañana 09:00 AM</p>
+              </div>
+            </div>
+
+            {/* Card flotante: disponibilidad */}
+            <div className="absolute -top-4 -right-4 rounded-2xl bg-white p-3 shadow-2xl border border-slate-100 flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <p className="text-xs font-bold text-slate-700">120+ médicos disponibles</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Wave divider */}
+      <div className="mt-12">
+        <svg viewBox="0 0 1440 80" className="w-full fill-white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,64L60,58.7C120,53,240,43,360,42.7C480,43,600,53,720,58.7C840,64,960,64,1080,58.7C1200,53,1320,43,1380,37.3L1440,32L1440,80L0,80Z" />
+        </svg>
       </div>
     </section>
   );
 }
 
+/* ─── Stats ───────────────────────────────────────────────────── */
+function Stats() {
+  const [ref, inView] = useInView(0.4);
+  return (
+    <section ref={ref} className="bg-gradient-to-r from-blue-600 to-blue-700 py-14">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
+          {STATS.map((s) => (
+            <StatCard key={s.label} {...s} animate={inView} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Features ────────────────────────────────────────────────── */
 function Features() {
   return (
-    <section id="servicios" className="bg-white py-20 border-y border-slate-50">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid gap-8 sm:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, title, description }) => (
-            <div key={title} className="group relative flex flex-col items-center text-center p-6 rounded-2xl transition hover:bg-blue-50/40">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-600 group-hover:text-white shadow-inner">
-                <Icon size={28} />
+    <section id="servicios" className="bg-white py-24">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <span className="text-xs font-bold uppercase tracking-widest text-blue-600">
+            Nuestros servicios
+          </span>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            Todo lo que necesitas en un solo lugar
+          </h2>
+          <p className="mt-4 text-slate-500 text-lg leading-relaxed">
+            Diseñado para pacientes modernos que valoran su tiempo y su salud.
+          </p>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map(({ icon: Icon, title, description, color, bg, accent }) => (
+            <div
+              key={title}
+              className="group relative flex flex-col rounded-2xl border border-slate-100 bg-white p-7 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              {/* Ícono */}
+              <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${bg}`}>
+                <div className={`bg-gradient-to-br ${color} h-10 w-10 flex items-center justify-center rounded-xl text-white shadow-md`}>
+                  <Icon size={20} />
+                </div>
               </div>
-              <h3 className="mt-5 text-lg font-bold text-slate-900">{title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-500 max-w-xs">{description}</p>
+
+              <h3 className="text-base font-bold text-slate-900">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-500">{description}</p>
+
+              {/* Línea decorativa inferior al hover */}
+              <div className={`absolute bottom-0 left-0 h-1 w-0 rounded-b-2xl bg-gradient-to-r ${color} transition-all duration-300 group-hover:w-full`} />
             </div>
           ))}
         </div>
@@ -206,27 +426,43 @@ function Features() {
   );
 }
 
+/* ─── How It Works ────────────────────────────────────────────── */
 function HowItWorks() {
   return (
-    <section id="nosotros" className="bg-slate-50/60 py-20">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="como-funciona" className="bg-slate-50 py-24">
+      <div className="mx-auto max-w-7xl px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Cómo Funciona</h2>
-          <p className="mt-3 text-slate-500">Sigue tres sencillos pasos para asegurar tu atención profesional de manera inmediata.</p>
+          <span className="text-xs font-bold uppercase tracking-widest text-blue-600">
+            Proceso sencillo
+          </span>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            ¿Cómo funciona?
+          </h2>
+          <p className="mt-4 text-slate-500 text-lg">
+            Tres pasos simples para tener tu cita médica lista.
+          </p>
         </div>
 
-        <div className="grid gap-12 sm:grid-cols-3 relative">
-          {STEPS.map(({ icon: Icon, title, description }, i) => (
-            <div key={title} className="relative flex flex-col items-center text-center bg-white p-8 rounded-2xl shadow-sm border border-slate-100/80 z-10">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-md shadow-blue-100 font-bold mb-5">
-                <Icon size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-500">{description}</p>
+        <div className="relative grid gap-8 sm:grid-cols-3">
+          {/* Línea conectora decorativa */}
+          <div className="absolute top-12 left-[20%] right-[20%] hidden h-0.5 border-t-2 border-dashed border-blue-200 sm:block" />
 
-              {i < STEPS.length - 1 && (
-                <div className="absolute right-[-2.5rem] top-14 hidden h-0.5 w-16 border-t-2 border-dashed border-blue-200 lg:block -z-10" />
-              )}
+          {STEPS.map(({ number, icon: Icon, title, description }) => (
+            <div key={title} className="relative flex flex-col items-center text-center z-10">
+              {/* Número + Ícono */}
+              <div className="relative mb-6">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-xl border border-slate-100">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-200">
+                    <Icon size={28} />
+                  </div>
+                </div>
+                <span className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-xs font-extrabold text-white">
+                  {number}
+                </span>
+              </div>
+
+              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+              <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500">{description}</p>
             </div>
           ))}
         </div>
@@ -235,33 +471,46 @@ function HowItWorks() {
   );
 }
 
+/* ─── Testimonials ────────────────────────────────────────────── */
 function Testimonials() {
   return (
-    <section id="contacto" className="bg-white py-20">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="testimonios" className="bg-white py-24">
+      <div className="mx-auto max-w-7xl px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">La voz de nuestros pacientes</h2>
+          <span className="text-xs font-bold uppercase tracking-widest text-blue-600">
+            Testimonios
+          </span>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            Lo que dicen nuestros pacientes
+          </h2>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-3">
-          {TESTIMONIALS.map(({ name, role, text }) => (
+        <div className="grid gap-6 sm:grid-cols-3">
+          {TESTIMONIALS.map(({ name, role, initials, stars, text, color }) => (
             <figure
               key={name}
-              className="flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-8 shadow-md shadow-slate-100/50 relative hover:shadow-lg transition duration-300"
+              className="relative flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-8 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
-              <div>
-                <Quote className="text-blue-200 mb-4" size={32} />
-                <blockquote className="text-sm leading-relaxed text-slate-600 italic">
-                  "{text}"
-                </blockquote>
+              {/* Estrellas */}
+              <div className="flex gap-1 mb-4">
+                {Array.from({ length: stars }).map((_, i) => (
+                  <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+                ))}
               </div>
-              <figcaption className="mt-6 flex items-center gap-3 border-t border-slate-50 pt-4">
-                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700 text-sm">
-                  {name.charAt(0)}
+
+              <Quote className="text-blue-100 mb-3" size={28} />
+
+              <blockquote className="text-sm leading-relaxed text-slate-600 italic flex-1">
+                "{text}"
+              </blockquote>
+
+              <figcaption className="mt-6 flex items-center gap-3 border-t border-slate-50 pt-5">
+                <div className={`h-10 w-10 rounded-full ${color} flex items-center justify-center font-bold text-sm`}>
+                  {initials}
                 </div>
                 <div>
                   <div className="text-sm font-bold text-slate-900">{name}</div>
-                  <div className="text-xs text-blue-600 font-medium">{role}</div>
+                  <div className="text-xs text-slate-400">{role}</div>
                 </div>
               </figcaption>
             </figure>
@@ -272,52 +521,74 @@ function Testimonials() {
   );
 }
 
+/* ─── CTA ─────────────────────────────────────────────────────── */
 function CTA() {
   return (
-    <section className="bg-gradient-to-r from-blue-600 to-blue-700 py-16 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_50%)]" />
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 px-6 text-center md:flex-row md:text-left relative z-10">
-        <div>
-          <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-            ¿Listo para agendar tu próxima cita?
-          </h2>
-          <p className="mt-3 max-w-xl text-base text-blue-100">
-            Regístrate de manera gratuita y accede a la disponibilidad de tus médicos favoritos en tiempo real.
-          </p>
+    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 py-20">
+      <div className="pointer-events-none absolute -top-20 left-1/4 h-80 w-80 rounded-full bg-blue-600/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-cyan-500/15 blur-3xl" />
+
+      <div className="relative mx-auto max-w-4xl px-6 text-center">
+        <HeartPulse className="mx-auto mb-6 text-cyan-400" size={40} />
+        <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
+          ¿Listo para cuidar tu salud?
+        </h2>
+        <p className="mt-5 text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
+          Únete a miles de personas que ya gestionan sus citas médicas de forma
+          inteligente, rápida y segura.
+        </p>
+        <div className="mt-10 flex flex-wrap justify-center gap-4">
+          <Link
+            to="/register"
+            className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-10 py-4 text-base font-bold text-white shadow-xl shadow-blue-900/40 transition hover:opacity-90 hover:scale-[1.02]"
+          >
+            Crear cuenta gratuita
+            <ArrowRight size={16} className="transition group-hover:translate-x-1" />
+          </Link>
+          <Link
+            to="/login"
+            className="inline-flex items-center rounded-full border border-white/20 bg-white/5 px-10 py-4 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
+          >
+            Ya tengo cuenta
+          </Link>
         </div>
-        <Link
-          to="/login"
-          className="shrink-0 rounded-full bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-xl transition hover:bg-blue-50 hover:scale-[1.02] active:scale-[0.98]"
-        >
-          Comienza Aquí
-        </Link>
       </div>
     </section>
   );
 }
 
+/* ─── Footer ──────────────────────────────────────────────────── */
 function Footer() {
   return (
-    <footer className="bg-slate-950 py-12 text-center text-sm text-slate-400 border-t border-slate-900">
-      <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-2 font-bold text-white">
-          <HeartPulse size={18} className="text-blue-500" />
-          <span className="tracking-wider text-xs">HOSPITAL DIGITAL</span>
+    <footer className="bg-slate-950 py-12 border-t border-slate-900">
+      <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 text-white">
+            <HeartPulse size={16} />
+          </span>
+          <span className="text-sm font-extrabold tracking-wider text-white">MediCitas</span>
         </div>
-        <div className="text-xs text-slate-500">
-          © {new Date().getFullYear()} Hospital Digital. Todos los derechos reservados.
+        <p className="text-xs text-slate-500">
+          © {new Date().getFullYear()} MediCitas. Todos los derechos reservados.
+        </p>
+        <div className="flex gap-6 text-xs text-slate-500">
+          <a href="#inicio" className="hover:text-slate-300 transition">Privacidad</a>
+          <a href="#inicio" className="hover:text-slate-300 transition">Términos</a>
+          <a href="#inicio" className="hover:text-slate-300 transition">Contacto</a>
         </div>
       </div>
     </footer>
   );
 }
 
-export default function HospitalDigitalLanding() {
+/* ─── Export ──────────────────────────────────────────────────── */
+export default function Landing() {
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen font-sans text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
       <Navbar />
       <main>
         <Hero />
+        <Stats />
         <Features />
         <HowItWorks />
         <Testimonials />

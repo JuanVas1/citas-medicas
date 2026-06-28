@@ -18,7 +18,7 @@ app.use('/api/doctors', require('./routes/doctor.routes'));
 app.use('/api/citas', require('./routes/cita.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/horarios', horarioRoutes);
-app.use('/api/consultorios', require('./routes/consultorio.routes'));
+app.use('/api/users', require('./routes/user.routes'));
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || 'Error interno del servidor' });
 });

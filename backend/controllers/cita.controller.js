@@ -258,6 +258,14 @@ exports.updateStatus = async (req, res, next) => {
       return res.status(400).json({ error: 'Estado invalido' });
     }
 
+    // <-- AGREGADO: Validación RN-06 (Motivo obligatorio al cancelar)
+    if (status === 'cancelada' && (!note || note.trim() === '')) {
+      return res.status(400).json({ 
+        error: 'El motivo de cancelación es obligatorio según la regla RN-06.' 
+      });
+    }
+    // FIN DEL AGREGADO
+
     // RN-05: Validar que la transición de estado sea permitida
     const allowedNext = VALID_TRANSITIONS[cita.status] || [];
     if (!allowedNext.includes(status)) {

@@ -38,13 +38,25 @@ const PatientItems = [
   ]}
 ];
 
+const DoctorItems = [
+  { section: 'MI AGENDA', items: [
+    { to: '/doctor', label: 'Inicio', icon: Home },
+    { to: '/doctor/agenda', label: 'Mis citas', icon: Calendar },
+  ]},
+  { section: 'CUENTA', items: [
+    { to: '/doctor/perfil', label: 'Mi perfil', icon: User },
+  ]}
+];
+
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const rawRole = (user?.role || '').toString();
   const normalizedRole = rawRole.trim().toLowerCase() === 'admin' ? 'administrador' : rawRole.trim().toLowerCase();
   const isAdmin = normalizedRole === 'administrador';
-  const menu = isAdmin ? AdminItems : PatientItems;
+  const isDoctor = normalizedRole === 'doctor';
+  const menu = isAdmin ? AdminItems : isDoctor ? DoctorItems : PatientItems;
+  const systemName = isAdmin ? 'hospitalario' : isDoctor ? 'médico' : 'paciente';
 
   return (
     <aside className="site-sidebar">
@@ -53,7 +65,7 @@ export default function Sidebar() {
           <div className="brand-icon">HD</div>
           <div className="brand-text">
             <div className="brand-title">Hospital Digital</div>
-            <div className="brand-sub">Sistema {isAdmin ? 'hospitalario' : 'paciente'}</div>
+            <div className="brand-sub">Sistema {systemName}</div>
           </div>
         </div>
       </div>

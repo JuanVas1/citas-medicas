@@ -95,6 +95,22 @@ function App() {
             }
           />
           <Route
+            path="/doctor/agenda"
+            element={
+              <ProtectedRoute allowedRoles={["doctor"]}>
+                <DashboardDoctor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/perfil"
+            element={
+              <ProtectedRoute allowedRoles={["doctor"]}>
+                <DashboardDoctor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/doctor/cita/:id"
             element={
               <ProtectedRoute allowedRoles={["doctor"]}>

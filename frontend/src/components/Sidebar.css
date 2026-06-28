@@ -17,6 +17,7 @@
   min-height:100vh;
   padding:12px 10px;
   box-shadow: 2px 0 12px rgba(0,0,0,0.55);
+  flex: 0 0 200px;
 }
 
 .brand{ display:flex; gap:10px; align-items:center; padding:6px 4px }
@@ -39,3 +40,38 @@
 .user-role-small{ font-size:11px; color:var(--muted) }
 .logout-btn{ margin-top:8px; width:100%; padding:6px 8px; border-radius:8px; background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted); font-weight:700 }
 .logout-btn:hover{ background:#ef4444; color:white; border-color:#ef4444 }
+
+@media (max-width: 900px) {
+  .site-sidebar {
+    flex-basis: auto;
+    min-height: auto;
+    width: 100%;
+  }
+
+  .sidebar-sections {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .group-items {
+    display: flex;
+    gap: 8px;
+  }
+
+  .sidebar-item {
+    white-space: nowrap;
+  }
+
+  .sidebar-footer {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .logout-btn {
+    margin-top: 0;
+    width: auto;
+  }
+}

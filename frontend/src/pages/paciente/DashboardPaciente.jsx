@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   History,
   Stethoscope,
@@ -35,7 +35,6 @@ const formatFecha = (isoDate) => {
 const DashboardPaciente = () => {
   const { user } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
 
   console.log('DEBUG COMPONENTES PACIENTE:', {
     AgendarCita,

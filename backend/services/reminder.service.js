@@ -8,6 +8,16 @@
 const Appointment = require('../models/Appointment');
 const Notification = require('../models/Notification');
 
+// SOLAMENTE AGREGAMOS ESTO PARA LOS CORREOS:
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
 const INTERVAL_MS = 60 * 60 * 1000; // cada 1 hora
 
 const runReminderJob = async () => {
@@ -38,6 +48,7 @@ const runReminderJob = async () => {
       const recipientEmail = cita.patientId?.email;
       if (!recipientEmail) continue;
 
+      // TU CÓDIGO ORIGINAL INTACTO:
       await Notification.create({
         appointmentId: cita._id,
         recipientEmail,
@@ -53,6 +64,21 @@ const runReminderJob = async () => {
       });
 
       console.log(`[RN-07] Recordatorio creado para cita ${cita._id} (${recipientEmail}) - ${cita.date} ${cita.startTime}`);
+
+      // SOLAMENTE AGREGAMOS ESTO PARA ENVIAR EL CORREO FÍSICO:
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: recipientEmail,
+          subject: 'Recordatorio de Cita Médica',
+          text: `Hola ${cita.patientId?.name || ''}, te recordamos tu cita médica programada para el día ${cita.date} a las ${cita.startTime}.`
+        });
+        console.log(`[CUS-14] Correo enviado exitosamente a ${recipientEmail}`);
+      } catch (mailError) {
+        console.error(`[CUS-14] Error al enviar el correo a ${recipientEmail}:`, mailError.message);
+      }
+      // FIN DEL AGREGADO
+
     }
   } catch (error) {
     console.error('[RN-07] Error en job de recordatorios:', error.message);

@@ -14,7 +14,6 @@ const router = express.Router();
 router.get(
   '/',
   authMiddleware,
-  roleMiddleware('administrador'),
   getAll
 );
 

@@ -696,3 +696,184 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* FORM STYLES & ALERTS */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.form-input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-submit-btn {
+  background: #2563EB;
+  color: #ffffff;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  text-align: center;
+  font-size: 14px;
+}
+
+.form-submit-btn:hover {
+  background: #1D4ED8;
+}
+
+.form-submit-btn:active {
+  transform: scale(0.98);
+}
+
+.alert-success {
+  background-color: #dcfce7;
+  color: #15803d;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 14px;
+  border: 1px solid #bbf7d0;
+}
+
+.alert-error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 14px;
+  border: 1px solid #fecaca;
+}
+
+/* DOCTOR SECTION SPECIFICS */
+.doctors-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .doctors-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* SCHEDULE CARDS & GRID */
+.schedules-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.schedules-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.schedule-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.schedule-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.schedule-doctor-info h4 {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.schedule-doctor-info span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.schedule-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.schedule-day {
+  font-weight: 700;
+  color: #2563EB;
+}
+
+.schedule-hours {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.schedule-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.btn-delete-schedule {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-delete-schedule:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+@media (max-width: 1024px) {
+  .schedules-layout {
+    grid-template-columns: 1fr;
+  }
+}
+

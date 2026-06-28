@@ -20,7 +20,6 @@ const AdminItems = [
   ]},
   { section: 'SISTEMA', items: [
     { to: '/admin/usuarios', label: 'Usuarios', icon: User },
-    { to: '/admin/configuracion', label: 'Configuración', icon: Settings },
   ]}
 ];
 
@@ -33,11 +32,9 @@ const PatientItems = [
   ]},
   { section: 'MÉDICOS', items: [
     { to: '/paciente/doctores', label: 'Doctores', icon: UserCheck },
-    { to: '/paciente/especialidades', label: 'Especialidades', icon: Tag },
   ]},
   { section: 'CUENTA', items: [
     { to: '/paciente/perfil', label: 'Mi perfil', icon: User },
-    { to: '/paciente/configuracion', label: 'Configuración', icon: Settings },
   ]}
 ];
 
@@ -53,9 +50,9 @@ export default function Sidebar() {
     <aside className="site-sidebar">
       <div className="sidebar-top">
         <div className="brand">
-          <div className="brand-icon">MA</div>
+          <div className="brand-icon">HD</div>
           <div className="brand-text">
-            <div className="brand-title">MedAdmin</div>
+            <div className="brand-title">Hospital Digital</div>
             <div className="brand-sub">Sistema {isAdmin ? 'hospitalario' : 'paciente'}</div>
           </div>
         </div>

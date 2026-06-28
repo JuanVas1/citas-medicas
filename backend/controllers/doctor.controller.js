@@ -54,3 +54,71 @@ exports.createDoctor = async (req, res, next) => {
     next(error);
   }
 };
+
+// Crear perfil médico para un usuario existente con rol 'doctor' que aún no tiene perfil
+exports.createFromUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { specialty, office, licenseNumber } = req.body;
+
+    if (!specialty || !office) {
+      return res.status(400).json({ error: 'Especialidad y consultorio son obligatorios' });
+    }
+
+    // Verificar que el usuario existe y tiene rol doctor
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    if (user.role !== 'doctor') {
+      return res.status(400).json({ error: 'El usuario no tiene rol de doctor' });
+    }
+
+    // Verificar que no tenga ya un perfil
+    const existing = await Doctor.findOne({ userId });
+    if (existing) {
+      return res.status(409).json({ error: 'Este usuario ya tiene un perfil médico' });
+    }
+
+    const doctor = await Doctor.create({
+      userId,
+      specialty,
+      office,
+      licenseNumber: licenseNumber || ''
+    });
+
+    await doctor.populate('userId', 'name email phone');
+    return res.status(201).json({ doctor });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Actualizar perfil médico existente
+exports.updateDoctorProfile = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { specialty, office, licenseNumber } = req.body;
+
+    // Construir solo los campos que vienen definidos
+    const updateFields = {};
+    if (specialty !== undefined) updateFields.specialty = specialty;
+    if (office !== undefined) updateFields.office = office;
+    if (licenseNumber !== undefined) updateFields.licenseNumber = licenseNumber;
+
+    const doctor = await Doctor.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
+      { new: true, runValidators: false }  // runValidators:false evita conflictos con campos required
+    ).populate('userId', 'name email phone');
+
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor no encontrado. Verifica que el perfil existe.' });
+    }
+
+    return res.status(200).json({ doctor });
+  } catch (error) {
+    console.error('[updateDoctorProfile] error:', error.message);
+    next(error);
+  }
+};

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Pencil, X, CalendarX2 } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Pencil, X, CalendarX2, ArrowLeft } from 'lucide-react';
 import { citaService } from '../../../services/citaService';
 
 const ESTADO_STYLES = {
@@ -68,7 +68,7 @@ const normalizeAppointment = (raw) => {
   };
 };
 
-const MisCitas = () => {
+const MisCitas = ({ isWidget } = {}) => {
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -114,108 +114,118 @@ const MisCitas = () => {
     }
   };
 
-  return (
-    <main className="min-h-screen bg-[#f5f8fd] px-4 py-10">
-      <div className="mx-auto max-w-5xl">
-        <h1 className="text-2xl font-bold text-gray-900">Mis Citas</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Consulta, modifica o cancela tus citas programadas.
+  const mainContent = (
+    <div className="mx-auto max-w-5xl">
+      {!isWidget && (
+        <Link
+          to="/paciente"
+          className="mb-5 inline-flex items-center gap-1.5 text-sm font-bold text-gray-500 hover:text-[#1565D8] transition"
+        >
+          <ArrowLeft size={16} />
+          Volver
+        </Link>
+      )}
+
+      <h1 className="text-2xl font-bold text-gray-900">Mis Citas</h1>
+      <p className="mt-1 text-sm text-gray-500">
+        Consulta, modifica o cancela tus citas programadas.
+      </p>
+
+      {error && (
+        <p className="mt-4 rounded-lg bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+          {error}
         </p>
+      )}
 
-        {error && (
-          <p className="mt-4 rounded-lg bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
-            {error}
-          </p>
-        )}
-
-        <div className="mt-6 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                <th className="px-5 py-3">Doctor</th>
-                <th className="px-5 py-3">Fecha</th>
-                <th className="px-5 py-3">Hora</th>
-                <th className="px-5 py-3">Estado</th>
-                <th className="px-5 py-3 text-right">Acciones</th>
+      <div className="mt-6 overflow-hidden rounded-xl border border-[#e8e5dd] bg-[#fffdfb] shadow-sm">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-[#e8e5dd] bg-[#fcfbf9] text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <th className="px-5 py-3">Doctor</th>
+              <th className="px-5 py-3">Fecha</th>
+              <th className="px-5 py-3">Hora</th>
+              <th className="px-5 py-3">Estado</th>
+              <th className="px-5 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr>
+                <td colSpan="5" className="px-5 py-6 text-center text-sm text-gray-400">
+                  Cargando citas...
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={5} className="px-5 py-8 text-center text-gray-400">
-                    Cargando tus citas...
-                  </td>
-                </tr>
-              )}
+            )}
 
-              {!loading && citas.length === 0 && !error && (
-                <tr>
-                  <td colSpan={5} className="px-5 py-10 text-center text-gray-400">
-                    <div className="flex flex-col items-center gap-2">
-                      <CalendarX2 size={28} className="text-gray-300" />
-                      No tienes citas registradas todavía.
-                    </div>
-                  </td>
-                </tr>
-              )}
+            {!loading && citas.length === 0 && (
+              <tr>
+                <td colSpan="5" className="px-5 py-6 text-center text-sm text-gray-400">
+                  No tienes citas programadas en este momento.
+                </td>
+              </tr>
+            )}
 
-              {!loading &&
-                citas.map((cita) => {
-                  const estadoLower = cita.estado?.toLowerCase();
-                  const reglas = canModifyOrCancel(cita);
-                  const puedeEditar = reglas.allowed;
+            {!loading &&
+              citas.map((cita) => {
+                const estadoLower = cita.estado?.toLowerCase() || '';
+                const reglas = canModifyOrCancel(cita);
+                const puedeEditar = reglas.allowed;
 
-                  return (
-                    <tr key={cita.id} className="border-b border-gray-50 last:border-0">
-                      <td className="px-5 py-4">
-                        <div className="font-medium text-gray-800">{cita.doctorNombre}</div>
-                        <div className="text-xs text-gray-400">{cita.especialidad}</div>
-                      </td>
-                      <td className="px-5 py-4 text-gray-700">{formatFecha(cita.fecha)}</td>
-                      <td className="px-5 py-4 text-gray-700">{cita.hora}</td>
-                      <td className="px-5 py-4">
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
-                            ESTADO_STYLES[estadoLower] || 'bg-gray-100 text-gray-600'
-                          }`}
+                return (
+                  <tr key={cita.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                    <td className="px-5 py-4">
+                      <p className="font-bold text-gray-900">{cita.doctorNombre}</p>
+                      <p className="text-xs text-gray-400">{cita.especialidad}</p>
+                    </td>
+                    <td className="px-5 py-4 text-gray-600 font-semibold">{formatFecha(cita.fecha)}</td>
+                    <td className="px-5 py-4 text-gray-600 font-semibold">{cita.hora || '-'}</td>
+                    <td className="px-5 py-4">
+                      <span className={`status-badge inline-block capitalize rounded-full px-2.5 py-1 text-xs font-semibold ${ESTADO_STYLES[estadoLower] || 'bg-gray-50 text-gray-600'}`}>
+                        {cita.estado}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onModificar(cita.id)}
+                          disabled={!puedeEditar}
+                          className="flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                          {cita.estado}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => onModificar(cita.id)}
-                            disabled={!puedeEditar}
-                            title={!puedeEditar ? reglas.reason : 'Modificar cita'}
-                            className="flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-[#1565D8] hover:text-[#1565D8] disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            <Pencil size={13} />
-                            Modificar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onCancelar(cita.id)}
-                            disabled={!puedeEditar || cancelandoId === cita.id}
-                            title={!puedeEditar ? reglas.reason : 'Cancelar cita'}
-                            className="flex items-center gap-1.5 rounded-md border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            <X size={13} />
-                            {cancelandoId === cita.id ? 'Cancelando...' : 'Cancelar'}
-                          </button>
-                        </div>
-                        {!puedeEditar && (
-                          <p className="mt-2 text-right text-[11px] text-gray-400">{reglas.reason}</p>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
-        </div>
+                          <Pencil size={13} />
+                          Modificar
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => onCancelar(cita.id)}
+                          disabled={!puedeEditar || cancelandoId === cita.id}
+                          className="flex items-center gap-1.5 rounded-md border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <X size={13} />
+                          {cancelandoId === cita.id ? 'Cancelando...' : 'Cancelar'}
+                        </button>
+                      </div>
+                      {!puedeEditar && (
+                        <p className="mt-2 text-right text-[11px] text-gray-400">{reglas.reason}</p>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
       </div>
+    </div>
+  );
+
+  if (isWidget) {
+    return mainContent;
+  }
+
+  return (
+    <main className="min-h-screen bg-[#faf9f5] px-4 py-10">
+      {mainContent}
     </main>
   );
 };

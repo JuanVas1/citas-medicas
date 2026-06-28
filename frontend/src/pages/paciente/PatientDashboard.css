@@ -1,0 +1,184 @@
+/* Patient dashboard theme matching the Admin's premium light UI with warm tones */
+:root {
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-dark: #1E3A8A;
+  --secondary: #0891B2;
+  --bg: #FAF9F5; /* Tono crema/hueso cálido y acogedor */
+  --surface: #FFFDFB; /* Blanco cálido */
+  --text: #0F172A;
+  --muted: #64748B;
+  --border: #E8E5DD; /* Bordes cálidos suaves */
+  --accent-warm: #FFFBEB; /* Fondo ámbar/crema para áreas destacadas */
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+.patient-dashboard {
+  flex: 1;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.patient-container {
+  max-width: 1360px;
+}
+
+.brand-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+}
+
+.welcome-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Panels */
+.panel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.icon-accent {
+  color: var(--primary);
+}
+
+.link-accent {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.link-accent:hover {
+  color: var(--primary-hover);
+}
+
+.panel-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appointment-item, .doctor-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  background: #FFFDF9; /* Fondo de ítem con calidez */
+  border: 1px solid var(--border);
+}
+
+.empty-recent {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.appoint-name, .doctor-name {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.appoint-meta, .doctor-specialty {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status-badge {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.status-badge.pendiente {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.confirmada {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.completada {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.doctor-status-dot {
+  margin-left: auto;
+}
+
+.dot.available {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.dot.offline {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .patient-container {
+    padding: 0 16px;
+  }
+  .dashboard-panels {
+    grid-template-columns: 1fr;
+  }
+}

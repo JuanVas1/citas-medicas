@@ -1,330 +1,385 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, User, CalendarClock, CheckCircle2, Clock } from 'lucide-react';
-import { horarioService } from '../../../services/horarioService';
-import { citaService } from '../../../services/citaService';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Calendar, Clock, User, FileText, CheckCircle } from 'lucide-react';
 
-// Nombre de día según el índice JS (0=Domingo)
-const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const formatFechaISO = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 
-const AgendarCita = () => {
-  const [step, setStep] = useState(1); // 1: elegir doctor | 2: elegir horario y fecha | 3: confirmar
+const formatFechaLegible = (date) => {
+  return date.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short'
+  });
+};
 
+const MAPEO_DIAS = {
+  'Domingo': 0, 'Lunes': 1, 'Martes': 2, 'Miércoles': 3, 'Jueves': 4, 'Viernes': 5, 'Sábado': 6
+};
+
+const obtenerProximasFechas = (nombreDia) => {
+  const targetDay = MAPEO_DIAS[nombreDia];
+  if (targetDay === undefined) return [];
+
+  const fechas = [];
+  const hoy = new Date();
+  
+  // Buscar en los próximos 30 días las primeras 4 ocurrencias de ese día
+  for (let i = 0; i < 30; i++) {
+    const d = new Date();
+    d.setDate(hoy.getDate() + i);
+    if (d.getDay() === targetDay) {
+      fechas.push(new Date(d));
+      if (fechas.length === 4) break;
+    }
+  }
+  return fechas;
+};
+
+const AgendarCita = ({ isWidget } = {}) => {
+  const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
-  const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [allSchedules, setAllSchedules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
-  const [doctorSeleccionado, setDoctorSeleccionado] = useState(null);
-  const [horarios, setHorarios] = useState([]);
-  const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
+  const [formData, setFormData] = useState({
+    doctorId: '',
+    date: '',
+    startTime: '',
+    endTime: '',
+    reason: '',
+  });
 
-  const [fecha, setFecha] = useState('');
-  const [reason, setReason] = useState('');
-  const [enviando, setEnviando] = useState(false);
+  // Turno seleccionado y fechas sugeridas
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
 
-  // Cargar doctores al montar
   useEffect(() => {
-    const fetchDoctors = async () => {
+    const cargarDatos = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/doctors', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
-        // Solo mostrar doctores con estructura nueva (tienen userId)
-        setDoctors(data.filter(d => d.userId));
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        const [resDocs, resSchedules] = await Promise.all([
+          fetch('http://localhost:5000/api/doctors', { headers }),
+          fetch('http://localhost:5000/api/horarios', { headers })
+        ]);
+
+        const dataDocs = await resDocs.json();
+        const dataSchedules = await resSchedules.json();
+
+        setDoctors(Array.isArray(dataDocs) ? dataDocs : dataDocs.data || []);
+        setAllSchedules(Array.isArray(dataSchedules) ? dataSchedules : dataSchedules.data || []);
       } catch (err) {
-        console.error(err);
+        console.error('Error al cargar datos de agendamiento:', err);
+        setError('Error al sincronizar doctores u horarios de atención.');
       } finally {
-        setLoadingDoctors(false);
+        setLoading(false);
       }
     };
-    fetchDoctors();
+
+    cargarDatos();
   }, []);
 
-  // Cuando se selecciona un doctor, cargar sus horarios
-  const seleccionarDoctor = async (doctor) => {
-    setDoctorSeleccionado(doctor);
-    setHorarioSeleccionado(null);
-    setFecha('');
-    try {
-      const res = await fetch(`http://localhost:5000/api/horarios/doctor/${doctor._id}`);
-      const data = await res.json();
-      setHorarios(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-      setHorarios([]);
-    }
-    setStep(2);
+  // Filtrar horarios del doctor seleccionado
+  const doctorSchedules = useMemo(() => {
+    if (!formData.doctorId) return [];
+    return allSchedules.filter(s => {
+      const sDocId = s.doctorId?._id || s.doctorId;
+      return sDocId === formData.doctorId;
+    });
+  }, [formData.doctorId, allSchedules]);
+
+  // Fechas sugeridas para el horario de atención seleccionado
+  const sugeridos = useMemo(() => {
+    if (!selectedSchedule) return [];
+    return obtenerProximasFechas(selectedSchedule.day);
+  }, [selectedSchedule]);
+
+  const handleDoctorChange = (e) => {
+    setFormData({
+      ...formData,
+      doctorId: e.target.value,
+      date: '',
+      startTime: '',
+      endTime: ''
+    });
+    setSelectedSchedule(null);
   };
 
-  // Calcular fechas disponibles para el horario seleccionado (próximas 4 semanas)
-  const getFechasDisponibles = (horario) => {
-    if (!horario) return [];
+  const handleScheduleSelect = (schedule) => {
+    setSelectedSchedule(schedule);
+    setFormData(prev => ({
+      ...prev,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      date: '' // Limpiar fecha previa para obligar a seleccionar una sugerida
+    }));
+  };
 
-    // Buscar el índice del día en español
-    const dayMap = {
-      domingo: 0, lunes: 1, martes: 2, miércoles: 3, miercoles: 3,
-      jueves: 4, viernes: 5, sábado: 6, sabado: 6
-    };
-    const targetDay = dayMap[horario.day.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')] ?? -1;
-    if (targetDay === -1) return [];
+  const handleDateSelect = (fechaObj) => {
+    setFormData(prev => ({
+      ...prev,
+      date: formatFechaISO(fechaObj)
+    }));
+  };
 
-    const fechas = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (let i = 1; i <= 28; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      if (d.getDay() === targetDay) {
-        fechas.push(d.toISOString().split('T')[0]); // YYYY-MM-DD
-      }
-    }
-    return fechas;
+  const handleReasonChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      reason: e.target.value
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!doctorSeleccionado || !horarioSeleccionado || !fecha || !reason.trim()) {
-      alert('Completa todos los campos');
+    if (submitting) return;
+
+    if (!formData.doctorId || !formData.date || !formData.startTime || !formData.endTime || !formData.reason.trim()) {
+      setError('Por favor completa todos los pasos del agendamiento.');
       return;
     }
-    setEnviando(true);
+
     try {
-      await citaService.create({
-        doctorId: doctorSeleccionado._id,
-        date: fecha,
-        startTime: horarioSeleccionado.startTime,
-        endTime: horarioSeleccionado.endTime,
-        reason: reason.trim()
+      setSubmitting(true);
+      setError('');
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('http://localhost:5000/api/citas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
       });
-      setStep(3);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al agendar la cita.');
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/paciente/citas');
+      }, 2000);
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Error al agendar');
+      console.error(err);
+      setError(err.message);
     } finally {
-      setEnviando(false);
+      setSubmitting(false);
     }
   };
 
-  const resetear = () => {
-    setStep(1);
-    setDoctorSeleccionado(null);
-    setHorarioSeleccionado(null);
-    setFecha('');
-    setReason('');
-  };
-
-  const fechasDisponibles = getFechasDisponibles(horarioSeleccionado);
-
-  return (
-    <main className="min-h-screen bg-[#f5f8fd] px-4 py-10">
-      <div className="mx-auto max-w-3xl">
-
-        {/* Volver */}
+  const mainContent = (
+    <div className="mx-auto max-w-3xl rounded-2xl border border-[#e8e5dd] bg-[#fffdfb] p-8 shadow-sm">
+      {/* Enlace Volver simplificado */}
+      {!isWidget && (
         <Link
           to="/paciente"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-blue-600 transition"
+          className="mb-5 inline-flex items-center gap-1.5 text-sm font-bold text-gray-500 hover:text-[#1565D8] transition"
         >
           <ArrowLeft size={16} />
-          Volver al dashboard
+          Volver
         </Link>
+      )}
 
-        {/* Indicador de pasos */}
-        <div className="mb-8 flex items-center gap-3">
-          {[
-            { n: 1, label: 'Elegir doctor' },
-            { n: 2, label: 'Horario y fecha' },
-            { n: 3, label: 'Confirmado' }
-          ].map(({ n, label }, i, arr) => (
-            <React.Fragment key={n}>
-              <div className="flex items-center gap-2">
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition
-                  ${step >= n ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                  {step > n ? '✓' : n}
-                </div>
-                <span className={`text-sm font-medium hidden sm:inline ${step >= n ? 'text-blue-700' : 'text-gray-400'}`}>
-                  {label}
-                </span>
-              </div>
-              {i < arr.length - 1 && (
-                <div className={`flex-1 h-0.5 ${step > n ? 'bg-blue-400' : 'bg-gray-200'}`} />
-              )}
-            </React.Fragment>
-          ))}
+      <h1 className="text-2xl font-extrabold text-gray-900">
+        Agendar Cita Médica
+      </h1>
+      <p className="mt-2 text-sm text-gray-500">
+        Sigue los pasos interactivos para programar tu cita al instante.
+      </p>
+
+      {error && (
+        <p style={{ marginTop: '16px', color: '#dc2626', background: '#fef2f2', padding: '10px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: '500' }}>
+          ⚠️ {error}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        {/* PASO 1: SELECCIONAR DOCTOR */}
+        <div className="form-step" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+            <User size={16} style={{ color: '#2563eb' }} />
+            Paso 1: Selecciona el Doctor
+          </label>
+          <select
+            name="doctorId"
+            value={formData.doctorId}
+            onChange={handleDoctorChange}
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:border-[#1565D8] focus:ring-1 focus:ring-[#1565D8] focus:outline-none transition bg-white"
+            style={{ fontSize: '14px' }}
+          >
+            <option value="">-- Selecciona un médico especialista --</option>
+            {doctors.map((doc) => (
+              <option key={doc._id} value={doc._id}>
+                {doc.userId?.name || doc.name} — {doc.specialty || doc.speciality || 'Especialidad'}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* ─── PASO 1: Elegir doctor ─── */}
-        {step === 1 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Agendar Cita Médica</h1>
-            <p className="text-sm text-gray-500 mb-6">Selecciona el médico con quien deseas consultar.</p>
+        {/* PASO 2: SELECCIONAR TURNO */}
+        {formData.doctorId && (
+          <div className="form-step fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+              <Clock size={16} style={{ color: '#2563eb' }} />
+              Paso 2: Elige un turno de atención
+            </label>
 
-            {loadingDoctors ? (
-              <p className="text-gray-400 text-center py-8">Cargando doctores...</p>
-            ) : doctors.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No hay doctores disponibles.</p>
+            {doctorSchedules.length === 0 ? (
+              <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-xl p-4">
+                Este médico no tiene horarios de atención programados en el sistema por el administrador.
+              </p>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {doctors.map((doctor) => (
-                  <button
-                    key={doctor._id}
-                    onClick={() => seleccionarDoctor(doctor)}
-                    className="flex items-center gap-4 rounded-xl border border-gray-200 p-4 text-left transition hover:border-blue-400 hover:bg-blue-50/40 hover:shadow-sm"
-                  >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-lg">
-                      {(doctor.userId?.name || doctor.name || '?').charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        Dr. {doctor.userId?.name || doctor.name}
-                      </p>
-                      <p className="text-sm text-blue-600">{doctor.specialty || doctor.speciality}</p>
-                      {doctor.office && (
-                        <p className="text-xs text-gray-400">Consultorio: {doctor.office}</p>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ─── PASO 2: Elegir horario y fecha ─── */}
-        {step === 2 && doctorSeleccionado && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-
-            {/* Resumen del doctor seleccionado */}
-            <div className="flex items-center gap-3 mb-6 pb-5 border-b border-gray-100">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-lg">
-                {(doctorSeleccionado.userId?.name || doctorSeleccionado.name || '?').charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">
-                  Dr. {doctorSeleccionado.userId?.name || doctorSeleccionado.name}
-                </p>
-                <p className="text-sm text-blue-600">{doctorSeleccionado.specialty || doctorSeleccionado.speciality}</p>
-              </div>
-              <button
-                onClick={() => { setStep(1); setDoctorSeleccionado(null); setHorarios([]); }}
-                className="ml-auto text-xs text-gray-400 hover:text-blue-600 transition underline"
-              >
-                Cambiar doctor
-              </button>
-            </div>
-
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Horarios disponibles</h2>
-
-            {horarios.length === 0 ? (
-              <div className="rounded-xl bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800">
-                Este doctor aún no tiene horarios configurados. Comunícate con la clínica.
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 mb-6">
-                {horarios.map((h) => (
-                  <button
-                    key={h._id}
-                    onClick={() => { setHorarioSeleccionado(h); setFecha(''); }}
-                    className={`flex items-center gap-3 rounded-xl border p-4 text-left transition
-                      ${horarioSeleccionado?._id === h._id
-                        ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-300'
-                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/30'
-                      }`}
-                  >
-                    <Clock size={20} className="text-blue-500 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-gray-900">{h.day}</p>
-                      <p className="text-sm text-gray-500">{h.startTime} – {h.endTime}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Fechas disponibles según el horario seleccionado */}
-            {horarioSeleccionado && (
-              <>
-                <h2 className="text-lg font-bold text-gray-900 mb-3">
-                  Fechas disponibles — {horarioSeleccionado.day}
-                </h2>
-                <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 mb-6">
-                  {fechasDisponibles.map((f) => (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                {doctorSchedules.map((schedule) => {
+                  const isSelected = selectedSchedule?._id === schedule._id;
+                  return (
                     <button
-                      key={f}
-                      onClick={() => setFecha(f)}
-                      className={`rounded-xl border py-3 text-sm font-medium text-center transition
-                        ${fecha === f
-                          ? 'border-blue-500 bg-blue-600 text-white'
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                        }`}
+                      key={schedule._id}
+                      type="button"
+                      onClick={() => handleScheduleSelect(schedule)}
+                      style={{
+                        background: isSelected ? '#eff6ff' : '#fffdfb',
+                        border: isSelected ? '2px solid #2563eb' : '1px solid #e8e5dd',
+                        borderRadius: '12px',
+                        padding: '12px 16px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
                     >
-                      {new Date(f + 'T12:00:00').toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })}
+                      <p style={{ margin: 0, fontWeight: '700', fontSize: '14px', color: isSelected ? '#2563eb' : '#0f172a' }}>
+                        {schedule.day}
+                      </p>
+                      <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
+                        ⏱ {schedule.startTime} – {schedule.endTime}
+                      </p>
                     </button>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Motivo */}
-            {fecha && horarioSeleccionado && (
-              <form onSubmit={handleSubmit}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Motivo de la consulta
-                </label>
-                <textarea
-                  rows={4}
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  required
-                  placeholder="Describa brevemente el motivo de la consulta..."
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 mb-5"
-                />
-
-                {/* Resumen */}
-                <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 mb-5 text-sm text-blue-800 space-y-1">
-                  <p><strong>Doctor:</strong> Dr. {doctorSeleccionado.userId?.name || doctorSeleccionado.name}</p>
-                  <p><strong>Día:</strong> {horarioSeleccionado.day} — {new Date(fecha + 'T12:00:00').toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  <p><strong>Hora:</strong> {horarioSeleccionado.startTime} – {horarioSeleccionado.endTime}</p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={enviando}
-                  className="w-full rounded-xl bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
-                >
-                  {enviando ? 'Agendando...' : 'Confirmar cita'}
-                </button>
-              </form>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
 
-        {/* ─── PASO 3: Éxito ─── */}
-        {step === 3 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
-            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle2 size={40} className="text-green-600" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">¡Cita agendada!</h1>
-            <p className="text-gray-500 mb-2">Tu cita fue registrada con estado <strong>pendiente</strong>.</p>
-            <p className="text-sm text-gray-400 mb-8">El médico la confirmará próximamente. Recibirás un recordatorio 24 horas antes.</p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                to="/paciente/citas"
-                className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition"
-              >
-                Ver mis citas
-              </Link>
-              <button
-                onClick={resetear}
-                className="rounded-xl border border-gray-200 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-50 transition"
-              >
-                Agendar otra cita
-              </button>
+        {/* PASO 3: SELECCIONAR FECHA */}
+        {selectedSchedule && (
+          <div className="form-step fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+              <Calendar size={16} style={{ color: '#2563eb' }} />
+              Paso 3: Elige la fecha de tu cita
+            </label>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px' }}>
+              {sugeridos.map((fecha, idx) => {
+                const isoDateStr = formatFechaISO(fecha);
+                const isSelected = formData.date === isoDateStr;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleDateSelect(fecha)}
+                    style={{
+                      background: isSelected ? '#eff6ff' : '#fffdfb',
+                      border: isSelected ? '2px solid #2563eb' : '1px solid #e8e5dd',
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <span style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: isSelected ? '#2563eb' : '#1e293b', textTransform: 'capitalize' }}>
+                      {formatFechaLegible(fecha)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
-      </div>
+        {/* PASO 4: MOTIVO DE CONSULTA */}
+        {formData.date && (
+          <div className="form-step fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+              <FileText size={16} style={{ color: '#2563eb' }} />
+              Paso 4: Motivo de consulta
+            </label>
+            <textarea
+              name="reason"
+              placeholder="Indica el síntoma o motivo de tu consulta médica aquí..."
+              value={formData.reason}
+              onChange={handleReasonChange}
+              rows={3}
+              required
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:border-[#1565D8] focus:ring-1 focus:ring-[#1565D8] focus:outline-none transition"
+              style={{ fontSize: '14px' }}
+            />
+          </div>
+        )}
+
+        {/* BOTÓN SUBMIT */}
+        {formData.date && (
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-xl bg-[#1565D8] py-3.5 font-bold text-white transition hover:bg-[#0f4fb0]"
+            style={{
+              marginTop: '16px',
+              opacity: submitting ? 0.65 : 1,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              fontSize: '15px'
+            }}
+          >
+            {submitting ? 'Agendando cita...' : '✓ Agendar Cita Médica'}
+          </button>
+        )}
+      </form>
+    </div>
+  );
+
+  if (isWidget) {
+    if (success) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+          <CheckCircle size={48} style={{ color: '#16a34a', marginBottom: '16px' }} />
+          <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>¡Cita Agendada Exitosamente!</h2>
+          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px' }}>Redirigiendo a tu bandeja de citas programadas...</p>
+        </div>
+      );
+    }
+    return mainContent;
+  }
+
+  if (success) {
+    return (
+      <main className="min-h-screen bg-[#faf9f5] px-4 py-10 flex items-center justify-center">
+        <div className="mx-auto max-w-md rounded-2xl border border-[#e8e5dd] bg-[#fffdfb] p-8 shadow-sm text-center flex flex-col items-center gap-3">
+          <CheckCircle size={44} className="text-green-600" />
+          <h1 className="text-xl font-bold text-gray-900">¡Cita Solicitada!</h1>
+          <p className="text-gray-500 text-sm">
+            Tu cita médica ha sido registrada exitosamente. Redirigiendo a tus citas pasadas y programadas...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-[#faf9f5] px-4 py-10">
+      {mainContent}
     </main>
   );
 };

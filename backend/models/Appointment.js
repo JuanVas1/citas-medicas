@@ -62,5 +62,7 @@ const appointmentSchema = new mongoose.Schema({
 });
 
 appointmentSchema.index({ doctorId: 1, date: 1, startTime: 1, endTime: 1 });
+// Índice compuesto para RN-04: búsqueda rápida de duplicados paciente-doctor-fecha
+appointmentSchema.index({ patientId: 1, doctorId: 1, date: 1, status: 1 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);

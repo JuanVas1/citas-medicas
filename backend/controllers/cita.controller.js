@@ -215,10 +215,24 @@ exports.create = async (req, res, next) => {
       });
     }
 
-    // RN-02: Verificar que no haya conflicto con otra cita
+    // RN-02: Verificar que no haya conflicto con otra cita (Reglas 2 y 4 - solapamiento)
     const conflicts = await findConflicts({ doctorId, date, startTime, endTime });
     if (conflicts.length > 0) {
       return res.status(409).json({ error: 'El bloque horario seleccionado ya esta ocupado' });
+    }
+
+    // RN-04: Un paciente NO puede tener 2 citas el mismo día con el mismo doctor (Regla 1)
+    const duplicateExists = await Appointment.findOne({
+      patientId: req.user._id,
+      doctorId,
+      date,
+      status: { $in: ['pendiente', 'confirmada'] }
+    });
+
+    if (duplicateExists) {
+      return res.status(409).json({
+        error: 'Ya tiene una cita con este doctor en esta fecha. No se permite agendar dos citas el mismo día con el mismo doctor'
+      });
     }
 
     // RN-03: Estado inicial siempre 'pendiente'
@@ -361,6 +375,21 @@ exports.rescheduleMine = async (req, res, next) => {
 
     if (conflicts.length > 0) {
       return res.status(409).json({ error: 'El nuevo bloque horario seleccionado ya esta ocupado' });
+    }
+
+    // RN-04: Verificar que no exista otra cita del mismo paciente con el mismo doctor en la nueva fecha
+    const duplicateOnNewDate = await Appointment.findOne({
+      patientId: req.user._id,
+      doctorId: cita.doctorId,
+      date,
+      status: { $in: ['pendiente', 'confirmada'] },
+      _id: { $ne: cita._id }
+    });
+
+    if (duplicateOnNewDate) {
+      return res.status(409).json({
+        error: 'Ya tiene una cita con este doctor en la nueva fecha. No se permite dos citas el mismo día con el mismo doctor'
+      });
     }
 
     const previousSnapshot = `${cita.date} ${cita.startTime}-${cita.endTime}`;

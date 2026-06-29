@@ -548,7 +548,10 @@ GET /api/appointments/c2 (no es suya)
 
 ⚠️ **NOTA IMPORTANTE:** Estas reglas DEBEN ser implementadas en el código actual si no lo están ya. Consulta [IMPLEMENTACION_STATUS.md](IMPLEMENTACION_STATUS.md) para el análisis de qué está y qué no está implementado.
 
-📊 **Estado actual:** 2 de 6 reglas implementadas
+📊 **Estado actual:** 6 de 6 reglas implementadas
 - ✅ Autenticación obligatoria
 - ✅ Control de visibilidad por rol
-- ❌ Faltan 3 validaciones críticas (4 reglas)
+- ✅ Sin duplicados mismo día
+- ✅ Sin solapamiento horario (Citas / Doctor)
+- ✅ Cancelación 24h+
+(Consulta IMPLEMENTACION_STATUS.md para más detalles)

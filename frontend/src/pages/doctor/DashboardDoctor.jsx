@@ -91,10 +91,17 @@ const DashboardDoctor = () => {
   }, [agenda]);
 
   const handleCambiarEstado = async (id, nuevoEstado) => {
+    // Optimistic UI Update: Cambiar estado localmente de inmediato para que se sienta como "un solo click" instantáneo
+    const previousAgenda = [...agenda];
+    setAgenda(prev => prev.map(c => c._id === id ? { ...c, status: nuevoEstado } : c));
+    
     try {
       await citaService.updateStatus(id, { status: nuevoEstado });
+      // Se carga en background para asegurar sincronización
       cargarAgenda();
     } catch (error) {
+      // Revertir si hay error
+      setAgenda(previousAgenda);
       alert(error.response?.data?.error || 'Error al cambiar estado');
     }
   };

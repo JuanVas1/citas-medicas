@@ -12,7 +12,8 @@ import {
   Shield,
   CalendarCheck,
   Clock,
-  UserCheck
+  UserCheck,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -201,6 +202,15 @@ const Login = () => {
           className="relative z-10 w-full max-w-[420px]"
           style={{ animation: 'login-slide-up 0.65s ease-out both' }}
         >
+          {/* Back button */}
+          <Link
+            to="/"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-[#1565D8]"
+          >
+            <ArrowLeft size={16} />
+            Volver al inicio
+          </Link>
+
           {/* mobile-only logo */}
           <div className="mb-8 flex flex-col items-center text-center lg:hidden">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1565D8] text-white shadow-lg shadow-blue-200/50">

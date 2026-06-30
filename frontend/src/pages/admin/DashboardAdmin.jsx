@@ -435,7 +435,7 @@ const DashboardAdmin = ({ initialTab } = {}) => {
                 <div className="stat-icon check">
                   <IconCheck />
                 </div>
-                <strong>{summary.confirmed}</strong>
+                <strong>{summary.completed}</strong>
                 <span>Completadas</span>
               </article>
               <article className="stat-card">
